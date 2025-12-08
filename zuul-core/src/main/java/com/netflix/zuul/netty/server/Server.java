@@ -213,7 +213,6 @@ public class Server {
     LOG.info("Completed zuul shutdown.");
   }
 
-  @Initializer
   public void start() {
     serverGroup =
         new ServerGroup(
