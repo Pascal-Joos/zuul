@@ -64,8 +64,8 @@ public class SslHandshakeInfoHandler extends ChannelInboundHandlerAdapter {
 
   @VisibleForTesting
   SslHandshakeInfoHandler() {
-    this.spectatorRegistry = new com.netflix.spectator.api.NoopRegistry();
-    this.isSSlFromIntermediary = false;
+    spectatorRegistry = null;
+    isSSlFromIntermediary = false;
   }
 
   @Override
