@@ -87,6 +87,12 @@ public abstract class BaseZuulFilterRunner<I extends ZuulMessage, O extends Zuul
   private final Registry registry;
   private final Id filterExcessiveTimerId;
 
+  @SuppressWarnings("NullAway")
+  protected BaseZuulFilterRunner(
+      FilterType filterType, FilterUsageNotifier usageNotifier, Registry registry) {
+    this(filterType, usageNotifier, null, registry);
+  }
+
   protected BaseZuulFilterRunner(
       FilterType filterType,
       FilterUsageNotifier usageNotifier,
