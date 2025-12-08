@@ -28,12 +28,14 @@ import org.slf4j.LoggerFactory;
 public class StatusCategoryUtils {
   private static final Logger LOG = LoggerFactory.getLogger(StatusCategoryUtils.class);
 
+  @Nullable
   public static StatusCategory getStatusCategory(ZuulMessage msg) {
     return getStatusCategory(msg.getContext());
   }
 
+  @Nullable
   public static StatusCategory getStatusCategory(@Nullable SessionContext ctx) {
-    return ctx.get(CommonContextKeys.STATUS_CATGEORY);
+    return (ctx != null) ? ctx.get(CommonContextKeys.STATUS_CATGEORY) : null;
   }
 
   public static void setStatusCategory(SessionContext ctx, StatusCategory statusCategory) {

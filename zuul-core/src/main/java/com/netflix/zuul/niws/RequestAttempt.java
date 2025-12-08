@@ -305,11 +305,12 @@ public class RequestAttempt {
         error = obe.getOutboundErrorType().toString();
         exceptionType = OutboundException.class.getSimpleName();
       } else if (t instanceof SSLHandshakeException) {
+      } else if (t instanceof SSLHandshakeException) {
         error = t.getMessage();
         exceptionType = t.getClass().getSimpleName();
-        cause = (t.getCause() != null ? t.getCause().getMessage() : null);
+        final Throwable causeThrowable = t.getCause();
+        cause = (causeThrowable != null ? causeThrowable.getMessage() : null);
       } else {
-        error = t.getMessage();
         exceptionType = t.getClass().getSimpleName();
         cause = Throwables.getStackTraceAsString(t);
       }
