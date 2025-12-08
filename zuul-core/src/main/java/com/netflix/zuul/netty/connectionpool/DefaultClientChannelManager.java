@@ -379,8 +379,7 @@ public class DefaultClientChannelManager implements ClientChannelManager {
     }
 
     // Choose the next load-balanced server.
-    final Object nonNullKey = (key != null) ? key : DefaultClientChannelManager.class;
-    final DiscoveryResult chosenServer = dynamicServerResolver.resolve(nonNullKey);
+    final DiscoveryResult chosenServer = dynamicServerResolver.resolve(key);
 
     // (argha-c): Always ensure the selected server is updated, since the call chain relies on this
     // mutation.
