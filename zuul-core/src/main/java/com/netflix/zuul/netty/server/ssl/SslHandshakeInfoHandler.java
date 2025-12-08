@@ -115,6 +115,8 @@ public class SslHandshakeInfoHandler extends ChannelInboundHandlerAdapter {
               ctx.channel().attr(SourceAddressChannelHandler.ATTR_SOURCE_ADDRESS).get();
           Throwable cause = sslEvent.cause();
 
+          String causeMessage = cause.getMessage();
+
           PassportState passportState = CurrentPassport.fromChannel(ctx.channel()).getState();
           if (cause instanceof ClosedChannelException
               && (PassportState.SERVER_CH_INACTIVE.equals(passportState)
@@ -130,6 +132,7 @@ public class SslHandshakeInfoHandler extends ChannelInboundHandlerAdapter {
                 clientIP,
                 ChannelUtils.channelInfoForLogging(ctx.channel()));
           } else if (cause instanceof SSLException
+              && cause.getMessage() != null
               && cause.getMessage().contains("handshake timed out")) {
             logger.debug(
                 "Client timed-out doing the ssl handshake. , client_ip = {}, channel_info = {}",
