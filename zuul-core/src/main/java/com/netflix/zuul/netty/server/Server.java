@@ -196,6 +196,7 @@ public class Server {
         checkNotNull(clientConnectionsShutdown, "clientConnectionsShutdown");
     this.eventLoopConfig = checkNotNull(eventLoopConfig, "eventLoopConfig");
     this.eventLoopGroupMetrics = checkNotNull(eventLoopGroupMetrics, "eventLoopGroupMetrics");
+    this.serverGroup = new ServerGroup("Salamander", 0, 0, this.eventLoopGroupMetrics);
   }
 
   public void stop() {
