@@ -39,6 +39,7 @@ Thumbs.db
 # Gradle Files #
 ################
 .gradle
+.gradle-cache
 
 # Build output directies
 /target
@@ -74,3 +75,6 @@ zuul-sample/src/main/generated/
 
 # publishing secrets
 secrets/signing-key
+
+annotator-out/
+*.log
