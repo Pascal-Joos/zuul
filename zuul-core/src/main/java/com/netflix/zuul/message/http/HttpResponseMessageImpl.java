@@ -27,7 +27,6 @@ import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.CookieDecoder;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.ServerCookieEncoder;
-import java.util.Objects;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,9 +153,10 @@ public class HttpResponseMessageImpl implements HttpResponseMessage {
     message.disposeBufferedBody();
   }
 
+  @Nullable
   @Override
   public HttpRequestInfo getInboundRequest() {
-    return Objects.requireNonNull(outboundRequest.getInboundRequest());
+    return outboundRequest.getInboundRequest();
   }
 
   @Override
