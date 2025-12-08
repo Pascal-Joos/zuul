@@ -307,7 +307,8 @@ public class RequestAttempt {
       } else if (t instanceof SSLHandshakeException) {
         error = t.getMessage();
         exceptionType = t.getClass().getSimpleName();
-        cause = t.getCause().getMessage();
+        final Throwable causeThrowable = t.getCause();
+        cause = (causeThrowable != null) ? causeThrowable.getMessage() : null;
       } else {
         error = t.getMessage();
         exceptionType = t.getClass().getSimpleName();
