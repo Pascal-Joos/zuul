@@ -24,7 +24,6 @@ import com.netflix.zuul.origins.OriginManager;
 import com.netflix.zuul.passport.CurrentPassport;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -45,7 +44,6 @@ public class ZuulSessionContextDecorator implements SessionContextDecorator {
     this.originManager = originManager;
   }
 
-  @Nullable
   @Override
   public SessionContext decorate(SessionContext ctx) {
     // TODO split out commons parts from BaseSessionContextDecorator
@@ -53,7 +51,7 @@ public class ZuulSessionContextDecorator implements SessionContextDecorator {
     ChannelHandlerContext nettyCtx =
         (ChannelHandlerContext) ctx.get(CommonContextKeys.NETTY_SERVER_CHANNEL_HANDLER_CONTEXT);
     if (nettyCtx == null) {
-      return null;
+      return ctx;
     }
 
     Channel channel = nettyCtx.channel();
