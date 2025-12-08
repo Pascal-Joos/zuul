@@ -21,6 +21,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.netty.common.SourceAddressChannelHandler;
 import com.netflix.netty.common.ssl.SslHandshakeInfo;
+import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.zuul.netty.ChannelUtils;
 import com.netflix.zuul.passport.CurrentPassport;
@@ -55,6 +56,7 @@ public class SslHandshakeInfoHandler extends ChannelInboundHandlerAdapter {
   private static final Logger logger = LoggerFactory.getLogger(SslHandshakeInfoHandler.class);
 
   private final Registry spectatorRegistry;
+  private static final Registry NOOP_REGISTRY = new NoopRegistry();
   private final boolean isSSlFromIntermediary;
 
   public SslHandshakeInfoHandler(Registry spectatorRegistry, boolean isSSlFromIntermediary) {
@@ -64,8 +66,7 @@ public class SslHandshakeInfoHandler extends ChannelInboundHandlerAdapter {
 
   @VisibleForTesting
   SslHandshakeInfoHandler() {
-    spectatorRegistry = null;
-    isSSlFromIntermediary = false;
+    this(NOOP_REGISTRY, false);
   }
 
   @Override
