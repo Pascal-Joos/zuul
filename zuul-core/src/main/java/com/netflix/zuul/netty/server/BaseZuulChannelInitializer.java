@@ -372,11 +372,14 @@ public abstract class BaseZuulChannelInitializer extends ChannelInitializer<Chan
       ZuulFilter<T, T> start, ZuulFilter<T, T> stop) {
     final SortedSet<ZuulFilter<?, ?>> zuulFilters =
         filterLoader.getFiltersByType(start.filterType());
-    final ZuulFilter<T, T>[] filters = new ZuulFilter[zuulFilters.size() + 2];
+    final java.util.SortedSet<ZuulFilter<?, ?>> nonNullZuulFilters =
+        (zuulFilters != null)
+            ? zuulFilters
+            : java.util.Collections.<ZuulFilter<?, ?>>emptySortedSet();
+    final ZuulFilter<T, T>[] filters = new ZuulFilter[nonNullZuulFilters.size() + 2];
     filters[0] = start;
     int i = 1;
-    for (ZuulFilter<?, ?> filter : zuulFilters) {
-      // TODO(carl-mastrangelo): find some way to make this cast not needed.
+    for (ZuulFilter<?, ?> filter : nonNullZuulFilters) {
       filters[i++] = (ZuulFilter<T, T>) filter;
     }
     filters[filters.length - 1] = stop;
