@@ -41,7 +41,7 @@ public class PushRegistrationHandler extends ChannelInboundHandlerAdapter {
 
   /* state */
   protected final AtomicBoolean destroyed;
-  @Nullable private ChannelHandlerContext ctx;
+  private ChannelHandlerContext ctx;
   @Nullable private volatile PushConnection pushConnection;
   private final List<ScheduledFuture<?>> scheduledFutures;
 
@@ -106,9 +106,7 @@ public class PushRegistrationHandler extends ChannelInboundHandlerAdapter {
   protected final void forceCloseConnectionFromServerSide() {
     if (!destroyed.get()) {
       logger.debug("server forcing close connection");
-      if (ctx != null) {
-        pushProtocol.sendErrorAndClose(ctx, 1000, "Server closed connection");
-      }
+      pushProtocol.sendErrorAndClose(ctx, 1000, "Server closed connection");
     }
   }
 
@@ -122,7 +120,7 @@ public class PushRegistrationHandler extends ChannelInboundHandlerAdapter {
   }
 
   private void requestClientToCloseConnection() {
-    if (ctx != null && ctx.channel().isActive()) {
+    if (ctx.channel().isActive()) {
       // Application level protocol for asking client to close connection
       ctx.writeAndFlush(pushProtocol.goAwayMessage());
       // Force close connection if client doesn't close in reasonable time after we made request
@@ -138,7 +136,7 @@ public class PushRegistrationHandler extends ChannelInboundHandlerAdapter {
   }
 
   protected void keepAlive() {
-    if (KEEP_ALIVE_ENABLED.get() && ctx != null) {
+    if (KEEP_ALIVE_ENABLED.get()) {
       ctx.writeAndFlush(new PingWebSocketFrame());
     }
   }
