@@ -153,10 +153,10 @@ public class HttpResponseMessageImpl implements HttpResponseMessage {
     message.disposeBufferedBody();
   }
 
-  @Nullable
   @Override
   public HttpRequestInfo getInboundRequest() {
-    return outboundRequest.getInboundRequest();
+    HttpRequestInfo inbound = outboundRequest.getInboundRequest();
+    return inbound == null ? outboundRequest : inbound;
   }
 
   @Override
