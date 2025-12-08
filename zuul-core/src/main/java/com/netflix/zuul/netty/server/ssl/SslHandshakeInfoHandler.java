@@ -207,6 +207,9 @@ public class SslHandshakeInfoHandler extends ChannelInboundHandlerAdapter {
     }
     try {
       if (sslHandshakeCompletionEvent.isSuccess()) {
+        if (handshakeInfo == null) {
+          return;
+        }
         String proto =
             handshakeInfo.getProtocol().length() > 0 ? handshakeInfo.getProtocol() : "unknown";
         String ciphsuite =
