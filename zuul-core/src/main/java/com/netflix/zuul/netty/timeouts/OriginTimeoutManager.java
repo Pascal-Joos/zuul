@@ -68,7 +68,8 @@ public class OriginTimeoutManager {
     if (originTimeout == null && requestTimeout == null) {
       computedTimeout = MAX_OUTBOUND_READ_TIMEOUT_MS.get();
     } else if (originTimeout == null || requestTimeout == null) {
-      computedTimeout = originTimeout == null ? requestTimeout : originTimeout;
+      // exactly one is null; safely convert the non-null value to a primitive
+      computedTimeout = toPrimitive(originTimeout, requestTimeout);
     } else {
       // return the stricter (i.e. lower) of the two timeouts
       computedTimeout = Math.min(originTimeout, requestTimeout);
@@ -76,6 +77,17 @@ public class OriginTimeoutManager {
 
     // enforce max timeout upperbound
     return Duration.ofMillis(Math.min(computedTimeout, MAX_OUTBOUND_READ_TIMEOUT_MS.get()));
+  }
+
+  private static long toPrimitive(@Nullable Long a, @Nullable Long b) {
+    if (a != null) {
+      return a.longValue();
+    }
+    if (b != null) {
+      return b.longValue();
+    }
+    // should not be reachable given current callers
+    return MAX_OUTBOUND_READ_TIMEOUT_MS.get();
   }
 
   /**
