@@ -202,7 +202,7 @@ public class ClientResponseWriter extends ChannelInboundHandlerAdapter {
 
     final HttpRequest nativeReq =
         (HttpRequest) zuulResp.getContext().get(CommonContextKeys.NETTY_HTTP_REQUEST);
-    if (!closeConnection && nativeReq != null && HttpUtil.isKeepAlive(nativeReq)) {
+    if (!closeConnection && HttpUtil.isKeepAlive(nativeReq)) {
       HttpUtil.setKeepAlive(nativeResponse, true);
     } else {
       // Send a Connection: close response header (only needed for HTTP/1.0 but no harm in doing for
@@ -211,8 +211,7 @@ public class ClientResponseWriter extends ChannelInboundHandlerAdapter {
     }
 
     // TODO - temp hack for http/2 handling.
-    if (nativeReq != null
-        && nativeReq.headers().contains(HttpConversionUtil.ExtensionHeaderNames.STREAM_ID.text())) {
+    if (nativeReq.headers().contains(HttpConversionUtil.ExtensionHeaderNames.STREAM_ID.text())) {
       String streamId =
           nativeReq.headers().get(HttpConversionUtil.ExtensionHeaderNames.STREAM_ID.text());
       nativeResponse
