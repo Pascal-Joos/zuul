@@ -1,0 +1,18 @@
+```xml
+<response>
+    <reason><![CDATA[
+This method is a Netty channel handler callback (`userEventTriggered`) that can be invoked multiple times over the lifetime of the handler instance, with different event objects (`evt`). Within the method, it both sets fields (`this.ctx`, `pushConnection`, `authEvent`) and performs ongoing logic (handling handshake completion events, authentication events, error handling, scheduling tasks, and delegating to `super.userEventTriggered`).
+
+According to the definition provided, initializer methods are those that are part of an object's one-time setup lifecycle and are assumed to be called exactly once (or strictly as part of framework-driven construction) before any other regular methods. They typically correspond to well-known framework lifecycle hooks that establish the initial, stable state of the object.
+
+In contrast, this `userEventTriggered` method:
+- Is a standard Netty lifecycle/event callback, not a one-time initialization hook.
+- Is expected to be called zero, one, or many times, depending on what user events occur on the channel.
+- Handles ongoing state transitions (e.g., handshake, then auth), not just initial object setup.
+- Acts more like an event handler than a dedicated initializer.
+
+Because it can be invoked multiple times, and its semantics are not limited to "called once during initialization", it does not match NullAway's concept of an initializer method. Treating it as an initializer would be unsafe, since fields it sets are not guaranteed to be assigned exactly once before all other methods and may depend on runtime events.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

@@ -1,0 +1,66 @@
+```xml
+<response>
+    <reason><![CDATA[
+The expression in question is `cause.getMessage()` inside this condition:
+
+    } else if (cause instanceof SSLException
+        && cause.getMessage().contains("failure when writing TLS control frames")) {
+
+To determine whether `cause.getMessage()` can be null at this point, we need to consider:
+
+1. **How `cause` is obtained**  
+   `cause` is assigned from:
+   
+       Throwable cause = sslEvent.cause();
+   
+   where `sslEvent` is an instance of `SslHandshakeCompletionEvent` (Netty).
+
+   Netty’s `SslHandshakeCompletionEvent.cause()` is documented to return:
+   - `null` if the handshake succeeded; and
+   - a `Throwable` describing the failure if it did not.
+
+   In this branch we are in the `else` of:
+
+       if (sslEvent.isSuccess()) {
+           ...
+       } else {
+           ...
+           Throwable cause = sslEvent.cause();
+           ...
+
+So, by Netty’s contract, in the `!sslEvent.isSuccess()` branch, `cause` is *expected* to be non-null. There is no explicit `null` check in the method, but logically this branch is only executed on failure, where Netty will set a cause.
+
+2. **Can `cause` itself be null?**  
+   For `SslHandshakeCompletionEvent` as created by `SslHandler`, Netty always supplies a non-null `Throwable` for a failure. There is no documented or typical failure path where `sslEvent.isSuccess()` is `false` and `cause()` returns `null`. So `cause` is effectively non-null under normal, spec-compliant Netty behavior.
+
+3. **Can `cause.getMessage()` be null given a non-null `cause`?**  
+   This is a separate question. The type check is:
+
+       else if (cause instanceof SSLException
+           && cause.getMessage().contains("failure when writing TLS control frames")) {
+
+`cause instanceof SSLException` only guarantees the *type* of the throwable, not that `getMessage()` is non-null.
+
+In Java, `Throwable.getMessage()` can legally return `null`. For example, an `SSLException` may be constructed as:
+
+   new SSLException((String) null);
+
+or via some internal path where the message is left unset. The JDK and typical libraries do **not** guarantee that an `Exception` or `SSLException` always has a non-null message. Therefore:
+
+- `cause` is (practically) guaranteed non-null here due to Netty’s contract.
+- `cause.getMessage()` is *not* guaranteed non-null by the Java language or by `SSLException`.
+
+If `cause.getMessage()` is `null`, then the expression:
+
+   cause.getMessage().contains("failure when writing TLS control frames")
+
+will throw a `NullPointerException`.
+
+There is no prior null check on `cause.getMessage()` before calling `.contains`. Thus, on a purely semantic/contract basis, there *is* a possible path (an `SSLException` with a `null` message) that would make `cause.getMessage()` null at this line.
+
+Conclusion: Under strict Java semantics and without an explicit guarantee from all code paths constructing the relevant `SSLException`s, `cause.getMessage()` **can** be null at that point, and the current code is not null-safe.
+
+    ]]></reason>
+    <value>YES</value>
+</response>
+```

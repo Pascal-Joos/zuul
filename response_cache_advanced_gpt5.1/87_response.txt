@@ -1,0 +1,42 @@
+```xml
+<response>
+    <reason><![CDATA[
+We only reach the expression in question on the failure branch of an SslHandshakeCompletionEvent:
+
+1. The method checks:
+   if (evt instanceof SslHandshakeCompletionEvent) {
+       SslHandshakeCompletionEvent sslEvent = (SslHandshakeCompletionEvent) evt;
+       if (sslEvent.isSuccess()) {
+           ...
+       } else {
+           Throwable cause = sslEvent.cause();
+           ...
+           } else if (cause instanceof SSLException
+                      && cause.getMessage().contains("handshake timed out")) {
+
+So both usages of cause.getMessage() are inside the `else` (i.e., handshake failure) block.
+
+2. For Netty’s `SslHandshakeCompletionEvent` (io.netty.handler.ssl.SslHandshakeCompletionEvent), the contract is:
+
+   - If `isSuccess()` is `true`, then `cause()` returns `null`.
+   - If `isSuccess()` is `false`, then `cause()` returns a non-null `Throwable` describing the failure.
+
+Netty’s implementation (in all current released versions) enforces this: the failure event is constructed with a non-null Throwable, and `cause()` simply returns that reference. Thus, in the `else` branch, `cause` itself is guaranteed non-null.
+
+3. However, the nullability of `cause.getMessage()` is governed by the general `Throwable` contract from the JDK, not by Netty:
+
+   - `Throwable.getMessage()` returns the detail message string of this throwable, or `null` if there is no detail message.
+
+There is no guarantee that all `SSLException` instances created in the stack (e.g., by the JDK TLS implementation or by Netty) will always have a non-null message. Even if Netty and the JDK *typically* construct these exceptions with descriptive messages, the type system and contracts allow a `new SSLException(null)` or a wrapped exception with a null message.
+
+Since your code only checks `cause instanceof SSLException` and then immediately does:
+
+   cause.getMessage().contains("handshake timed out")
+
+without any null check on `cause.getMessage()`, it is possible (by the standard Java semantics) for `cause.getMessage()` to be `null`, which would result in a `NullPointerException` when calling `.contains(...)`.
+
+Therefore, by the language and library contracts alone, `cause.getMessage()` can be null at that point, and there is no guarantee in this code that prevents it.
+    ]]></reason>
+    <value>YES</value>
+</response>
+```

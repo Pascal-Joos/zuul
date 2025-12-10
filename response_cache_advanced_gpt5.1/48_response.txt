@@ -1,0 +1,34 @@
+<response>
+  <reason><![CDATA[
+The return value of `SessionContext.getFilterErrors()` is entirely determined by the call:
+
+```java
+return (List<FilterError>) get(KEY_FILTER_ERRORS);
+```
+
+at this call site:
+
+```java
+zuulCtx
+    .getFilterErrors()
+    .add(new FilterError(...));
+```
+
+Whether this can be null depends on what `get(KEY_FILTER_ERRORS)` returns.
+
+- We are not given the implementation of `get(...)` in `SessionContext` (or any superclass it might inherit from).
+- `get(KEY_FILTER_ERRORS)` could legally return `null` (for example, if no value has been associated with `KEY_FILTER_ERRORS` yet), in which case `(List<FilterError>) get(KEY_FILTER_ERRORS)` would also be `null`.
+- The code immediately dereferences the result with `.add(...)` without a null check; this does not prove non-nullness, it only shows that a `NullPointerException` would be thrown if `get(...)` returns null.
+- No other information in the provided chain initializes or guarantees a non-null list stored under `KEY_FILTER_ERRORS` before this call.
+
+Because the behavior of `get(KEY_FILTER_ERRORS)` is unknown, we cannot safely conclude that the result is non-null at this call site. Thus, `zuulCtx.getFilterErrors()` *can* be null here.
+
+To be certain, we would need the declaration/implementation of the `get` method used in `SessionContext`:
+
+- How `KEY_FILTER_ERRORS` is stored.
+- Whether `get` lazily initializes a list under that key.
+- Or whether it can return `null` for missing keys.
+
+Without that, the only sound conclusion is that `null` is possible at this call site.]]></reason>
+  <value>YES</value>
+</response>

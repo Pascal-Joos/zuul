@@ -1,0 +1,62 @@
+```xml
+<response>
+    <reason><![CDATA[
+The expression in question is the receiver of the call:
+
+    passport.addIfNotAlready(PassportState.FILTERS_INBOUND_BUF_START);
+
+which occurs in this branch:
+
+    if (isAwaitingBody) {
+        CurrentPassport passport = CurrentPassport.fromSessionContext(inMesg.getContext());
+        if (passport != null) {
+            if (inMesg.hasCompleteBody()) {
+                if (inMesg instanceof HttpRequestMessage) {
+                    Nullability.castToNonnull(passport).addIfNotAlready(PassportState.FILTERS_INBOUND_BUF_END);
+                } else if (inMesg instanceof HttpResponseMessage) {
+                    passport.addIfNotAlready(PassportState.FILTERS_OUTBOUND_BUF_END);
+                }
+            } else {
+                if (inMesg instanceof HttpRequestMessage) {
+                    passport.addIfNotAlready(PassportState.FILTERS_INBOUND_BUF_START);
+                } else if (inMesg instanceof HttpResponseMessage) {
+                    Nullability.castToNonnull(passport).addIfNotAlready(PassportState.FILTERS_OUTBOUND_BUF_START);
+                }
+            }
+        }
+    }
+
+To reach the specific line:
+
+    passport.addIfNotAlready(PassportState.FILTERS_INBOUND_BUF_START);
+
+the following conditions must hold in sequence:
+
+1. `isAwaitingBody` is true → we enter the outer `if (isAwaitingBody)`.
+2. `passport` is obtained via `CurrentPassport.fromSessionContext(...)`.
+3. The `if (passport != null)` guard passes → this guarantees `passport` is non-null for the body of that `if`.
+4. `!inMesg.hasCompleteBody()` must be true (else we would be in the `hasCompleteBody()` branch).
+5. `inMesg instanceof HttpRequestMessage` must be true (else the `HttpResponseMessage` branch is taken).
+
+Only when all of the above are true do we execute:
+
+    passport.addIfNotAlready(PassportState.FILTERS_INBOUND_BUF_START);
+
+Crucially, step 3 is a direct, explicit null check:
+
+    if (passport != null) {
+        ...
+        passport.addIfNotAlready(...);
+        ...
+    }
+
+There is no re-assignment to `passport` inside this `if` block, and there are no intervening calls that could change the value of `passport` (it is a local variable, not a field). Therefore, in all code paths that reach `passport.addIfNotAlready(PassportState.FILTERS_INBOUND_BUF_START);`, the variable `passport` is guaranteed to be non-null.
+
+The presence of `Nullability.castToNonnull(passport)` on other lines is only a static-analysis aid; it does not affect runtime behavior, and it is not used on the specific line in question because the explicit `if (passport != null)` already provides the necessary guarantee.
+
+Given the snippet and assuming no JVM-level data races on this local variable (local variables are thread-confined in Java) and no unusual bytecode transformations, the `passport` reference at that line cannot be null at runtime.
+
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

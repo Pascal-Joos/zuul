@@ -1,0 +1,34 @@
+<response>
+  <reason><![CDATA[
+At the relevant call site:
+
+```java
+} else if (cause instanceof SSLException
+    && cause.getMessage().contains("handshake timed out")) {
+```
+
+the code first evaluates `cause instanceof SSLException`. If this is true, then `cause` is a non-null reference of type `SSLException` (or subtype), because the `instanceof` operator returns `false` when its left-hand operand is `null`.
+
+Immediately afterward, `cause.getMessage()` is invoked. The method `Throwable.getMessage()` is defined in the JDK as:
+
+```java
+public String getMessage() {
+    return detailMessage;
+}
+```
+
+where `detailMessage` is a field that can be `null`. There is no guarantee anywhere in this method that the `Throwable` (or specifically `SSLException`) will always have a non-null message. `SSLException` does not override `getMessage()` to enforce non-nullness.
+
+Therefore, even though `cause` itself is guaranteed non-null at this point (due to the `instanceof` check), `cause.getMessage()` can validly return `null`. If it does, the subsequent `.contains("handshake timed out")` call would throw a `NullPointerException`.
+
+The same reasoning applies to the other occurrence:
+
+```java
+} else if (cause instanceof SSLException
+    && cause.getMessage().contains("failure when writing TLS control frames")) {
+```
+
+In both branches, `cause.getMessage()` may be `null.
+  ]]></reason>
+  <value>YES</value>
+</response>

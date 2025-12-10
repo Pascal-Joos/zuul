@@ -1,0 +1,31 @@
+```xml
+<response>
+  <reason><![CDATA[
+The method `CurrentPassport.fromSessionContext(SessionContext ctx)` simply returns the result of `ctx.get(CommonContextKeys.PASSPORT)`.
+
+Looking at `SessionContext.get`:
+
+```java
+public <T> T get(Key<T> key) {
+    return (T) typedMap.get(Objects.requireNonNull(key, "key"));
+}
+```
+
+Key points:
+- `Objects.requireNonNull(key, "key")` only ensures that the `key` itself is non-null; it does not enforce anything about the value retrieved.
+- The return value is whatever `typedMap.get(...)` returns.
+- A `Map.get(key)` in Java is allowed to return `null` when:
+  - there is no mapping for the given key, or
+  - the key is mapped to `null` (depending on map implementation and usage).
+
+No additional checks or defaulting logic are present to convert a `null` value into a non-null object. Therefore:
+- If `typedMap` does not contain an entry for `CommonContextKeys.PASSPORT`, or
+- If it contains a mapping where the value is `null`,
+
+then `ctx.get(CommonContextKeys.PASSPORT)` will return `null`, and consequently `fromSessionContext` will return `null` as well.
+
+There is nothing in the provided code that guarantees a non-null value for `CommonContextKeys.PASSPORT`.
+  ]]></reason>
+  <value>YES</value>
+</response>
+```

@@ -1,0 +1,50 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+```java
+final HttpResponseMessage resp = request.getContext().getStaticResponse();
+```
+
+`getStaticResponse()` is implemented as:
+
+```java
+public HttpResponseMessage getStaticResponse() {
+    return (HttpResponseMessage) get(KEY_STATIC_RESPONSE);
+}
+```
+
+Whether this returns null depends entirely on the value returned by `get(KEY_STATIC_RESPONSE)`.
+
+From the provided call chain:
+
+```java
+final SessionContext zuulCtx = zuulRequest.getContext();
+
+if (zuulCtx.getStaticResponse() != null) {
+  return STATIC_RESPONSE_ENDPOINT;
+}
+```
+
+The `STATIC_RESPONSE_ENDPOINT` is only selected when `zuulCtx.getStaticResponse()` is **non-null at that time**. However, the later call site you’re asking about is inside that endpoint:
+
+```java
+public HttpResponseMessage apply(HttpRequestMessage request) {
+  final HttpResponseMessage resp = request.getContext().getStaticResponse();
+  resp.finishBufferedBodyIfIncomplete();
+  return resp;
+}
+```
+
+Between the earlier null-check and this later call, nothing in the provided code guarantees that the value associated with `KEY_STATIC_RESPONSE` in the `SessionContext` cannot be cleared or set to null. The `SessionContext.get(...)` method implementation is not shown; we do not know:
+
+- How the underlying storage is managed
+- Whether `KEY_STATIC_RESPONSE` can be removed or overwritten with null after the earlier check
+- Whether `get(KEY_STATIC_RESPONSE)` can itself return null even when previously non-null
+
+Since the return value of `getStaticResponse()` is exactly whatever `get(KEY_STATIC_RESPONSE)` returns (cast), and we lack the declaration/behavior of `SessionContext.get`, we cannot rule out null at this call site.
+
+Therefore, based solely on the provided code, `resp` *can* be null here, because no invariant is shown that preserves the non-null static response between the guard check in `getEndpoint(...)` and this use site. To be confident that null is impossible, we would need to see the implementation of `get` and any mutations to the static response in `SessionContext`.
+]]></reason>
+  <value>YES</value>
+</response>

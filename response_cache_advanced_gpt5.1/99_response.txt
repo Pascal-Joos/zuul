@@ -1,0 +1,34 @@
+<response>
+    <reason><![CDATA[
+In `StatusCategoryUtils.getStatusCategory(SessionContext ctx)`, the `ctx` parameter is used directly:
+
+```java
+public static StatusCategory getStatusCategory(SessionContext ctx) {
+    return ctx.get(CommonContextKeys.STATUS_CATGEORY);
+}
+```
+
+From the provided usage in `PassportLoggingHandler.logPassport`:
+
+```java
+SessionContext ctx = request == null ? null : request.getContext();
+// ...
+String.valueOf(StatusCategoryUtils.getStatusCategory(ctx)),
+```
+
+`ctx` is explicitly set to `null` when `request` is `null`, and then passed directly to `StatusCategoryUtils.getStatusCategory(ctx)` with no intervening null check. Therefore, along this call path, `getStatusCategory(SessionContext ctx)` can indeed be invoked with `ctx == null`.
+
+Separately, the overload:
+
+```java
+public static StatusCategory getStatusCategory(ZuulMessage msg) {
+    return getStatusCategory(msg.getContext());
+}
+```
+
+does not introduce any guarantee that `msg.getContext()` is non-null (and we are instructed to ignore annotations), so this path also does not rule out a null context.
+
+Thus, based solely on actual usage patterns, `ctx` can be null when passed to this method.
+    ]]></reason>
+    <value>YES</value>
+</response>

@@ -1,0 +1,49 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Override
+  public void filter(final HttpRequestMessage zuulReq, final HttpContent chunk) {
+    if (zuulReq.getContext().isCancelled()) {
+      chunk.release();
+      return;
+    }
+
+    String endpointName = "-";
+    try (TaskCloseable ignored =
+        PerfMark.traceTask(this, s -> s.getClass().getSimpleName() + ".filterChunk")) {
+      addPerfMarkTags(zuulReq);
+      ZuulFilter<HttpRequestMessage, HttpResponseMessage> endpoint =
+          Preconditions.checkNotNull(getEndpoint(zuulReq), "endpoint");
+      endpointName = endpoint.filterName();
+
+      ByteBufUtil.touch(chunk, "Endpoint processing chunk, ZuulMessage: ", zuulReq);
+      final HttpContent newChunk = endpoint.processContentChunk(zuulReq, chunk);
+      if (newChunk != null) {
+        ByteBufUtil.touch(newChunk, "Endpoint buffering newChunk, ZuulMessage: ", zuulReq);
+        // Endpoints do not directly forward content chunks to next stage in the filter chain.
+        zuulReq.bufferBodyContents(newChunk);
+
+        // deallocate original chunk if necessary
+        if (newChunk != chunk) {
+          chunk.release();
+        }
+
+        if (isFilterAwaitingBody(zuulReq.getContext())
+            && zuulReq.hasCompleteBody()
+            && !(endpoint instanceof ProxyEndpoint)) {
+          // whole body has arrived, resume filter chain
+          ByteBufUtil.touch(
+              newChunk, "Endpoint body complete, resume chain, ZuulMessage: ", zuulReq);
+          invokeNextStage(Nullability.castToNonnull(filter(endpoint, zuulReq)));
+        }
+      }
+    } catch (Exception ex) {
+      ReferenceCountUtil.safeRelease(chunk);
+      handleException(zuulReq, endpointName, ex);
+    }
+  }
+  ```
+    ]]>
+  </code>
+</response>

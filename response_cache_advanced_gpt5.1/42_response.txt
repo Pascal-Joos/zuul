@@ -1,0 +1,24 @@
+```xml
+<response>
+  <reason><![CDATA[
+The method body is:
+
+public StringBuilder getFilterExecutionSummary() {
+    return (StringBuilder) get(KEY_FILTER_EXECS);
+}
+
+The return value is exactly whatever is returned by the method get(KEY_FILTER_EXECS), cast to StringBuilder.
+
+Without the declaration/implementation of get(Object) (or its overloads), we cannot know:
+- Whether get(KEY_FILTER_EXECS) can return null
+- Whether it guarantees a non-null StringBuilder for that key
+- Whether it might throw instead of returning null
+
+Since the nullability of this method’s return value depends entirely on the behavior of get(KEY_FILTER_EXECS), and that behavior is not provided, we cannot determine if null is possible or ruled out.
+  ]]></reason>
+  <value>UNKNOWN</value>
+  <methods>
+    <method>get</method>
+  </methods>
+</response>
+```

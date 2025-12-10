@@ -1,0 +1,14 @@
+```xml
+<response>
+  <reason><![CDATA[The implementation body of getFiltersByType(FilterType filterType) is not provided, only its signature and containing class. Without the method body, I cannot see:
+- What it returns in any branch
+- Whether it delegates to other methods (and how it uses their results)
+- Whether it always returns a non-null empty collection versus possibly returning null when no filters exist or on error
+
+Because there are no return statements or internal logic shown, I cannot determine if it can return null or not. To make a confident decision, I need the actual implementation of this method.]]></reason>
+  <value>UNKNOWN</value>
+  <methods>
+    <method>com.netflix.zuul.FilterLoader#getFiltersByType</method>
+  </methods>
+</response>
+```

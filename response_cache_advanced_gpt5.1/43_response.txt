@@ -1,0 +1,28 @@
+```xml
+<response>
+  <reason><![CDATA[
+The method implementation is:
+
+public StringBuilder getFilterExecutionSummary() {
+    return (StringBuilder) get(KEY_FILTER_EXECS);
+}
+
+and `get` is:
+
+@Override
+public Object get(Object key) {
+    return super.get(key);
+}
+
+The returned value is whatever `super.get(key)` returns, cast to `StringBuilder`.
+
+In Java, if `super.get(key)` returns `null`, the cast `(StringBuilder) null` is valid and the method will return `null`. There is nothing in the provided code that ensures `super.get(key)` cannot return `null`; we have no guarantees that:
+
+- `KEY_FILTER_EXECS` is always present in the underlying storage, or
+- the value associated with `KEY_FILTER_EXECS` is always non-null.
+
+Therefore, under any condition where `super.get(KEY_FILTER_EXECS)` returns `null` (for example, the key was never set or was explicitly set to null), this method will return `null`. Without the declaration/contract of the superclass `get` implementation or invariants about the stored values, we must conclude that a null return is possible.
+  ]]></reason>
+  <value>YES</value>
+</response>
+```

@@ -1,0 +1,24 @@
+```xml
+<response>
+  <reason><![CDATA[
+The method implementation is:
+
+public static CurrentPassport fromSessionContext(SessionContext ctx) {
+    return ctx.get(CommonContextKeys.PASSPORT);
+}
+
+The return value of fromSessionContext is exactly whatever is returned by ctx.get(CommonContextKeys.PASSPORT). There is no additional logic (no checks, no wrapping, no default value).
+
+To determine whether fromSessionContext can return null, we must know whether SessionContext.get(...) can return null for the key CommonContextKeys.PASSPORT. Without the declaration (or specification) of SessionContext.get, we cannot safely assume:
+- that the PASSPORT entry is always present, or
+- that get(...) throws instead of returning null when the key is absent, or
+- that get(...) guarantees a non-null value for this particular key.
+
+Because the behavior of ctx.get(...) is unknown, we cannot conclusively say that fromSessionContext never returns null, nor can we confirm that it does. Its nullability is entirely dependent on SessionContext.get's contract and implementation for that key.
+  ]]></reason>
+  <value>UNKNOWN</value>
+  <methods>
+    <method>SessionContext.get</method>
+  </methods>
+</response>
+```

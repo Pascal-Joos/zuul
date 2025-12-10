@@ -1,0 +1,27 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within the shown method, `spectatorRegistry` is used without being assigned or otherwise modified. Its value must therefore come from outside this method (e.g., as a field, constructor-injected dependency, or inherited member).
+
+In the `SniCompletionEvent` success branch, there is an explicit null check:
+
+    if (sniCompletionEvent.isSuccess()) {
+        if (spectatorRegistry == null) {
+            return;
+        }
+        spectatorRegistry.counter("zuul.sni.parse.success").increment();
+    }
+
+This establishes that on that control-flow path, the call:
+
+    spectatorRegistry.counter("zuul.sni.parse.success").increment();
+
+is executed only if `spectatorRegistry != null`.
+
+So, *at the point of that specific expression*, `spectatorRegistry` is guaranteed non-null by the preceding `if (spectatorRegistry == null) { return; }` guard. The same pattern exists in the failure branch before the metrics call.
+
+The actual field/variable `spectatorRegistry` may indeed be null at runtime (since nothing in this snippet shows it being initialized), but the code protects the specific use site with a null check and early `return`. Thus, even if `spectatorRegistry` is null, control flow exits before dereferencing it, making it impossible for `spectatorRegistry` to be null *when that expression is evaluated*.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

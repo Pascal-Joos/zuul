@@ -1,0 +1,64 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+```java
+final HttpRequest nativeReq =
+    (HttpRequest) zuulResp.getContext().get(CommonContextKeys.NETTY_HTTP_REQUEST);
+```
+
+the `get` implementation in `SessionContext` is:
+
+```java
+@Override
+public Object get(Object key) {
+    return super.get(key);
+}
+```
+
+`SessionContext` ultimately behaves like a `Map` (as evidenced by `keySet()`, `containsKey()`, and many typed getters doing simple casts of `get`). A `Map.get(key)` is allowed to return `null` either when:
+
+1. The key is not present, or
+2. The key is present and explicitly mapped to `null`.
+
+We must determine, for this specific call site, whether `CommonContextKeys.NETTY_HTTP_REQUEST` is *guaranteed* to have been set to a non-null `HttpRequest` in the context of `zuulResp`, or whether it may be missing/cleared.
+
+From the provided code:
+
+- We see many uses of `ctx.get(...)` on various keys (e.g., `ORIGIN_MANAGER`, `GZIPPER`, `ROUTING_LOG`, `PROXY_PROTOCOL_DESTINATION_ADDRESS`, `REQUEST_ATTEMPTS`, etc.), often immediately checked for `null`. This indicates that reading `null` from `get` is expected and normal.
+- `BaseZuulFilterRunner.getChannelHandlerContext` calls:
+  ```java
+  mesg.getContext().get(NETTY_SERVER_CHANNEL_HANDLER_CONTEXT)
+  ```
+  wrapped in `checkNotNull(...)`. That explicit null-check shows the authors *do not* assume context lookups are non-null even for core keys.
+- `ZuulEndPointRunner.getEndpoint`:
+  ```java
+  if (zuulCtx.getStaticResponse() != null) {
+      return STATIC_RESPONSE_ENDPOINT;
+  }
+  ```
+  and many other helpers (e.g., `getErrorEndpoint`, `getRouteHost`, `getStaticResponse`) simply cast `get(...)` with no guarantee that the value is present, further confirming `get` may legitimately return `null`.
+
+Regarding `CommonContextKeys.NETTY_HTTP_REQUEST` itself:
+
+- In the provided snippets, there is no place where we can see this key being *set* on the `SessionContext`, nor any contract stated that it must always be present by the time `ClientResponseWriter.buildHttpResponse(...)` is invoked.
+- We also see lifecycle code (`ClientRequestReceiver.userEventTriggered`) cleaning up attributes and cancelling requests, but nothing here guarantees that the context still contains a non-null `NETTY_HTTP_REQUEST` when a response is being written.
+- Given the general pattern (context as a mutable map with many nullable entries and cleanup on completion/cancellation), it is entirely plausible that:
+  - `NETTY_HTTP_REQUEST` was never stored in this context for some flows, or
+  - It was stored but later removed or set to null, or
+  - A response is being constructed in some unusual error/timeout path where the original request object is absent from the context.
+
+Because we must not assume behavior of methods whose full declarations/logic we do not see, and because no invariant is shown that `NETTY_HTTP_REQUEST` is always populated and non-null when `buildHttpResponse` runs, we cannot rule out `null`. Since `super.get(key)` here is effectively a `Map.get(key)`-style lookup, it may return `null` when this key is missing or mapped to `null`.
+
+Therefore, at this specific call site, the method
+
+```java
+public Object get(Object key) {
+    return super.get(key);
+}
+```
+
+*can* return `null`, making `nativeReq` potentially `null` and making the subsequent calls like `HttpUtil.isKeepAlive(nativeReq)` subject to a possible `NullPointerException.
+  ]]></reason>
+  <value>YES</value>
+</response>

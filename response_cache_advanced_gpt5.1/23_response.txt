@@ -1,0 +1,20 @@
+```xml
+<response>
+  <reason><![CDATA[
+The method implementation is simply:
+
+  @Override
+  public Object get(Object key) {
+    return super.get(key);
+  }
+
+Its return value depends entirely on the implementation of the superclass's get(Object key) method. Since that implementation is not provided, we cannot determine whether super.get(key) is guaranteed to be non-null or can return null (for example, on a missing key, depending on whether it behaves like Map.get, a custom context, etc.).
+
+Without the declaration/implementation of the superclass method, there is no basis to assert either that null is impossible or that it is possible. Therefore, more information is needed.
+  ]]></reason>
+  <value>UNKNOWN</value>
+  <methods>
+    <method>Declaration and implementation of the superclass method: public Object get(Object key)</method>
+  </methods>
+</response>
+```

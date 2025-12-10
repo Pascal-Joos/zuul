@@ -1,0 +1,37 @@
+<response>
+  <reason><![CDATA[
+The only information available for `FilterLoader.getFiltersByType(FilterType filterType)` is its signature:
+
+```java
+SortedSet<ZuulFilter<?, ?>> getFiltersByType(FilterType filterType)
+```
+
+and the call site:
+
+```java
+final SortedSet<ZuulFilter<?, ?>> zuulFilters =
+    filterLoader.getFiltersByType(start.filterType());
+```
+
+To determine whether this invocation can return null, we must know how `getFiltersByType` is implemented. The method’s return value may depend on internal state or on other helper methods (e.g., a map lookup, registry access, or some factory method). None of that logic is shown.
+
+Per your guidelines, we must:
+- Consider all return paths within `getFiltersByType`.
+- Not assume behavior of other methods without their declarations.
+- Analyze this specific call site based on the actual argument (`start.filterType()`), but we still need to see how `filterType` is used inside `getFiltersByType`.
+
+Without the body of `getFiltersByType`, we cannot rule out any of the following possibilities:
+
+- It returns an empty `SortedSet` when no filters match the type.
+- It returns `null` when no filters are registered for that type.
+- It delegates to another method that itself may return null (e.g., a `Map<FilterType, SortedSet<...>>.get(filterType)` or similar).
+
+Because the implementation is not provided, any of these are possible, and we cannot confidently say whether `null` is or is not returned at this call site.
+
+Therefore, to make a confident decision, we need the full implementation of `getFiltersByType`.
+]]></reason>
+  <success>false</success>
+  <methods>
+    <method>com.netflix.zuul.FilterLoader#getFiltersByType</method>
+  </methods>
+</response>

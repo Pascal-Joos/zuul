@@ -1,0 +1,16 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Override
+  public HttpResponseMessage apply(HttpRequestMessage request) {
+    final HttpResponseMessage resp = request.getContext().getStaticResponse();
+    if (resp != null) {
+      resp.finishBufferedBodyIfIncomplete();
+    }
+    return resp;
+  }
+  ```
+    ]]>
+  </code>
+</response>

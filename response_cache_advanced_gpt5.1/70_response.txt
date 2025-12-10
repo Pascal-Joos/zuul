@@ -1,0 +1,25 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public void stop() {
+        if (serverGroup == null) {
+          throw new IllegalStateException("Server has not been started");
+        }
+        LOG.info("Shutting down Zuul.");
+        Nullability.castToNonnull(serverGroup).stop();
+  
+        // remove the shutdown hook that was added when the proxy was started, since it has now been
+        // stopped
+        try {
+          Runtime.getRuntime().removeShutdownHook(jvmShutdownHook);
+        } catch (IllegalStateException e) {
+          // This can happen if the VM is already shutting down
+          LOG.debug("Failed to remove shutdown hook", e);
+        }
+        LOG.info("Completed zuul shutdown.");
+  }
+  ```
+    ]]>
+  </code>
+</response>

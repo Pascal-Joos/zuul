@@ -1,0 +1,58 @@
+```xml
+<response>
+    <reason><![CDATA[
+The expression in question is:
+
+    passport.addIfNotAlready(PassportState.FILTERS_OUTBOUND_BUF_START);
+
+This call is reached only inside the following block:
+
+    boolean isAwaitingBody = isFilterAwaitingBody(inMesg.getContext());
+
+    // Record passport states for start and end of buffering bodies.
+    if (isAwaitingBody) {
+      CurrentPassport passport = CurrentPassport.fromSessionContext(inMesg.getContext());
+      if (passport != null) {
+        if (inMesg.hasCompleteBody()) {
+          if (inMesg instanceof HttpRequestMessage) {
+            Nullability.castToNonnull(passport).addIfNotAlready(PassportState.FILTERS_INBOUND_BUF_END);
+          } else if (inMesg instanceof HttpResponseMessage) {
+            passport.addIfNotAlready(PassportState.FILTERS_OUTBOUND_BUF_END);
+          }
+        } else {
+          if (inMesg instanceof HttpRequestMessage) {
+            passport.addIfNotAlready(PassportState.FILTERS_INBOUND_BUF_START);
+          } else if (inMesg instanceof HttpResponseMessage) {
+            passport.addIfNotAlready(PassportState.FILTERS_OUTBOUND_BUF_START);
+          }
+        }
+      }
+    }
+
+Key points:
+
+1. `passport` is a local variable:
+   
+       CurrentPassport passport = CurrentPassport.fromSessionContext(inMesg.getContext());
+
+2. Before any use of `passport`, there is an explicit null check:
+
+       if (passport != null) {
+           ...
+           passport.addIfNotAlready(...)
+           ...
+       }
+
+3. The statement
+
+       passport.addIfNotAlready(PassportState.FILTERS_OUTBOUND_BUF_START);
+
+is strictly inside the `if (passport != null)` block. No reassignment to `passport` occurs between the null check and the call. Therefore, along any path where that statement executes, `passport` must be non-null.
+
+4. Even if `CurrentPassport.fromSessionContext(...)` can return null, that only affects whether the inner `if (passport != null)` body is entered. It cannot make `passport` null *inside* the block containing the call, given that there is no mutation or shadowing of `passport` within that scope.
+
+Conclusion: given the shown method, `passport` cannot be null at the call site `passport.addIfNotAlready(PassportState.FILTERS_OUTBOUND_BUF_START);` because execution reaches that line only when `passport != null` has just been checked and no intervening code can change it to null.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

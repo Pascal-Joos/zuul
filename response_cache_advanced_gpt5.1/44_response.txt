@@ -1,0 +1,42 @@
+<response>
+  <reason><![CDATA[
+The method `getFilterExecutionSummary()` is implemented as:
+```java
+public StringBuilder getFilterExecutionSummary() {
+    return (StringBuilder) get(KEY_FILTER_EXECS);
+}
+```
+
+At the call site:
+```java
+StringBuilder sb = getFilterExecutionSummary();
+```
+within:
+```java
+public void addFilterExecutionSummary(String name, String status, long time) {
+    StringBuilder sb = getFilterExecutionSummary();
+    if (sb.length() > 0) sb.append(", ");
+    sb.append(name).append('[').append(status).append(']').append('[').append(time).append("ms]");
+}
+```
+
+the very next line dereferences `sb`:
+```java
+if (sb.length() > 0) ...
+```
+If `sb` were `null`, this would immediately throw a `NullPointerException`.
+
+From the logic shown, there is no initialization, null-check, or defaulting of `KEY_FILTER_EXECS` or the value returned by `get(KEY_FILTER_EXECS)` in `addFilterExecutionSummary`. Whether `sb` is null depends entirely on what `get(KEY_FILTER_EXECS)` returns.
+
+The behavior of `get(KEY_FILTER_EXECS)` is not provided. Without its declaration and contract, we cannot determine:
+- whether it ever returns `null` for this key,
+- whether it lazily initializes and stores a `StringBuilder` when absent,
+- or whether it guarantees a non-null value for `KEY_FILTER_EXECS`.
+
+Because `get(KEY_FILTER_EXECS)` is the *only* source of the returned value, and its implementation is unknown, we cannot safely conclude that `getFilterExecutionSummary()` always returns non-null at this specific call site. To make a confident determination, we must see the declaration/implementation of `get(...)` in `SessionContext` (and any initialization path for `KEY_FILTER_EXECS` if that’s separate).
+  ]]></reason>
+  <success>false</success>
+  <methods>
+    <method>Object get(Object key) in com.netflix.zuul.context.SessionContext (or its superclass)</method>
+  </methods>
+</response>

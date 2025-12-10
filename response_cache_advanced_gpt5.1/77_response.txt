@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  protected final void forceCloseConnectionFromServerSide() {
+      if (!destroyed.get() && ctx != null) {
+        logger.debug("server forcing close connection");
+        pushProtocol.sendErrorAndClose(ctx, 1000, "Server closed connection");
+      }
+  }
+  ```
+    ]]>
+  </code>
+</response>

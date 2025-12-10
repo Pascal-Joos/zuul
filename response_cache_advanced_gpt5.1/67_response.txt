@@ -1,0 +1,20 @@
+```xml
+<response>
+    <reason><![CDATA[
+Inside the method, the very first thing done with `serverGroup` is:
+
+    if (serverGroup == null) {
+        throw new IllegalStateException("Server has not been started");
+    }
+
+This check guarantees that if execution proceeds past this point, `serverGroup` is non-null for the remainder of the method. The call:
+
+    .group(serverGroup.clientToProxyBossPool, serverGroup.clientToProxyWorkerPool);
+
+occurs immediately after this null check and within the same method, with no intervening reassignment to `serverGroup`. Therefore, along any path that reaches the `.group(...)` call, `serverGroup` cannot be null; otherwise, the method would have already thrown `IllegalStateException` and returned abruptly.
+
+This reasoning assumes standard single-threaded visibility of the field or that there is no concurrent modification that can set `serverGroup` to null between the null-check and the `.group(...)` call. Under normal Java semantics for typical server setup code (and absent any evidence of racy concurrent writes to `serverGroup`), `serverGroup` is effectively non-null at that line.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```
