@@ -32,6 +32,7 @@ import com.netflix.zuul.Attrs;
 import com.netflix.zuul.monitoring.ConnCounter;
 import com.netflix.zuul.monitoring.ConnTimer;
 import com.uber.nullaway.annotations.Initializer;
+import edu.ucr.cs.riple.annotator.util.Nullability;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufAllocatorMetric;
@@ -80,6 +81,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -120,7 +122,7 @@ public class Server {
 
   private final Thread jvmShutdownHook = new Thread(this::stop, "Zuul-JVM-shutdown-hook");
   private final Registry registry;
-  private ServerGroup serverGroup;
+  @Nullable private ServerGroup serverGroup;
   private final ClientConnectionsShutdown clientConnectionsShutdown;
   private final ServerStatusManager serverStatusManager;
   private final Map<NamedSocketAddress, ? extends ChannelInitializer<?>> addressesToInitializers;
@@ -199,8 +201,11 @@ public class Server {
   }
 
   public void stop() {
+    if (serverGroup == null) {
+      throw new IllegalStateException("Server has not been started");
+    }
     LOG.info("Shutting down Zuul.");
-    serverGroup.stop();
+    Nullability.castToNonnull(serverGroup).stop();
 
     // remove the shutdown hook that was added when the proxy was started, since it has now been
     // stopped
@@ -269,6 +274,9 @@ public class Server {
 
   @VisibleForTesting
   public void waitForEachEventLoop() throws InterruptedException, ExecutionException {
+    if (serverGroup == null) {
+      throw new IllegalStateException("Server has not been started");
+    }
     for (EventExecutor exec : serverGroup.clientToProxyWorkerPool) {
       exec.submit(
               () -> {
@@ -286,9 +294,14 @@ public class Server {
   private ChannelFuture setupServerBootstrap(
       NamedSocketAddress listenAddress, ChannelInitializer<?> channelInitializer)
       throws InterruptedException {
+    if (serverGroup == null) {
+      throw new IllegalStateException("Server has not been started");
+    }
     ServerBootstrap serverBootstrap =
         new ServerBootstrap()
-            .group(serverGroup.clientToProxyBossPool, serverGroup.clientToProxyWorkerPool);
+            .group(
+                Nullability.castToNonnull(serverGroup).clientToProxyBossPool,
+                Nullability.castToNonnull(serverGroup).clientToProxyWorkerPool);
 
     // Choose socket options.
     Map<ChannelOption<?>, Object> channelOptions = new HashMap<>();
