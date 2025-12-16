@@ -113,7 +113,6 @@ public class SslHandshakeInfoHandler extends ChannelInboundHandlerAdapter {
           String clientIP =
               ctx.channel().attr(SourceAddressChannelHandler.ATTR_SOURCE_ADDRESS).get();
           Throwable cause = sslEvent.cause();
-          String causeMessage = (cause != null) ? cause.getMessage() : null;
 
           PassportState passportState = CurrentPassport.fromChannel(ctx.channel()).getState();
           if (cause instanceof ClosedChannelException
@@ -130,15 +129,13 @@ public class SslHandshakeInfoHandler extends ChannelInboundHandlerAdapter {
                 clientIP,
                 ChannelUtils.channelInfoForLogging(ctx.channel()));
           } else if (cause instanceof SSLException
-              && causeMessage != null
-              && causeMessage.contains("handshake timed out")) {
+              && cause.getMessage().contains("handshake timed out")) {
             logger.debug(
                 "Client timed-out doing the ssl handshake. , client_ip = {}, channel_info = {}",
                 clientIP,
                 ChannelUtils.channelInfoForLogging(ctx.channel()));
           } else if (cause instanceof SSLException
-              && causeMessage != null
-              && causeMessage.contains("failure when writing TLS control frames")) {
+              && cause.getMessage().contains("failure when writing TLS control frames")) {
             // This can happen if the ClientHello is sent followed  by a RST packet, before we can
             // respond.
             logger.debug(
