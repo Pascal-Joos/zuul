@@ -156,6 +156,9 @@ public class HttpResponseMessageImpl implements HttpResponseMessage {
   @Nullable
   @Override
   public HttpRequestInfo getInboundRequest() {
+    if (outboundRequest == null || outboundRequest.getInboundRequest() == null) {
+      throw new IllegalStateException("Inbound request is not available");
+    }
     return outboundRequest.getInboundRequest();
   }
 
