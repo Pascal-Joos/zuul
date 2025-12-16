@@ -207,11 +207,12 @@ public class SslHandshakeInfoHandler extends ChannelInboundHandlerAdapter {
     }
     try {
       if (sslHandshakeCompletionEvent.isSuccess()) {
-        String protocol = handshakeInfo.getProtocol();
-        String proto = protocol != null && protocol.length() > 0 ? protocol : "unknown";
-        String cipherSuite = handshakeInfo.getCipherSuite();
+        String proto =
+            handshakeInfo.getProtocol().length() > 0 ? handshakeInfo.getProtocol() : "unknown";
         String ciphsuite =
-            cipherSuite != null && cipherSuite.length() > 0 ? cipherSuite : "unknown";
+            handshakeInfo.getCipherSuite().length() > 0
+                ? handshakeInfo.getCipherSuite()
+                : "unknown";
         spectatorRegistry
             .counter(
                 "server.ssl.handshake",
