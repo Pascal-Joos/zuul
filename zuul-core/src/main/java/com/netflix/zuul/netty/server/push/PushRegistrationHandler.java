@@ -62,8 +62,8 @@ public class PushRegistrationHandler extends ChannelInboundHandlerAdapter {
 
   public PushRegistrationHandler(
       PushConnectionRegistry pushConnectionRegistry, PushProtocol pushProtocol) {
-    this.pushConnectionRegistry = pushConnectionRegistry;
-    this.pushProtocol = pushProtocol;
+    this.pushConnectionRegistry = Objects.requireNonNull(pushConnectionRegistry);
+    this.pushProtocol = Objects.requireNonNull(pushProtocol);
     this.destroyed = new AtomicBoolean();
     this.scheduledFutures = Collections.synchronizedList(new ArrayList<>());
   }
