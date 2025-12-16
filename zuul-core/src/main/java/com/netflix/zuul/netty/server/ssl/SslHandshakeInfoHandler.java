@@ -129,12 +129,16 @@ public class SslHandshakeInfoHandler extends ChannelInboundHandlerAdapter {
                 clientIP,
                 ChannelUtils.channelInfoForLogging(ctx.channel()));
           } else if (cause instanceof SSLException
+              && cause != null
+              && cause.getMessage() != null
               && cause.getMessage().contains("handshake timed out")) {
             logger.debug(
                 "Client timed-out doing the ssl handshake. , client_ip = {}, channel_info = {}",
                 clientIP,
                 ChannelUtils.channelInfoForLogging(ctx.channel()));
           } else if (cause instanceof SSLException
+              && cause != null
+              && cause.getMessage() != null
               && cause.getMessage().contains("failure when writing TLS control frames")) {
             // This can happen if the ClientHello is sent followed  by a RST packet, before we can
             // respond.
