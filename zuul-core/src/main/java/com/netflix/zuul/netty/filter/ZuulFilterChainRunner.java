@@ -53,7 +53,7 @@ public class ZuulFilterChainRunner<T extends ZuulMessage> extends BaseZuulFilter
 
   public ZuulFilterChainRunner(
       ZuulFilter<T, T>[] zuulFilters, FilterUsageNotifier usageNotifier, Registry registry) {
-    this(zuulFilters, usageNotifier, (FilterRunner<T, ?>) null, registry);
+    this(zuulFilters, usageNotifier, null, registry);
   }
 
   @Override
