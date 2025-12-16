@@ -148,11 +148,7 @@ public final class SocketAddressProperty extends StringDerivedProperty<SocketAdd
         case ANY_LOCAL: // fallthrough
         case IPV4_LOCAL: // fallthrough
         case IPV6_LOCAL: // fallthrough
-          Supplier<InetAddress> addressSupplier = bindType.addressSupplier;
-          if (addressSupplier == null) {
-            throw new IllegalStateException("addressSupplier is null for bindType: " + bindType);
-          }
-          return new InetSocketAddress(addressSupplier.get(), port);
+          return new InetSocketAddress(bindType.addressSupplier.get(), port);
         case UDS:
           return new DomainSocketAddress(rawAddress);
       }
