@@ -122,11 +122,7 @@ public final class SessionContext extends HashMap<String, Object> implements Clo
    */
   @Override
   public Object get(Object key) {
-    Object value = super.get(key);
-    if (value == null) {
-      return new Object();
-    }
-    return value;
+    return super.get(key);
   }
 
   /** Returns the value in the context, or {@code null} if absent. */
