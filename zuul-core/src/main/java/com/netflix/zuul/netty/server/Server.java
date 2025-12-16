@@ -196,14 +196,6 @@ public class Server {
         checkNotNull(clientConnectionsShutdown, "clientConnectionsShutdown");
     this.eventLoopConfig = checkNotNull(eventLoopConfig, "eventLoopConfig");
     this.eventLoopGroupMetrics = checkNotNull(eventLoopGroupMetrics, "eventLoopGroupMetrics");
-    this.serverGroup =
-        new ServerGroup(
-            this.registry,
-            this.serverStatusManager,
-            this.addressesToInitializers,
-            this.clientConnectionsShutdown,
-            this.eventLoopGroupMetrics,
-            this.eventLoopConfig);
   }
 
   public void stop() {
