@@ -296,7 +296,7 @@ public class RequestAttempt {
 
         final Throwable cause = t.getCause();
         if (cause != null) {
-          exceptionType = t.getCause().getClass().getSimpleName();
+          exceptionType = cause.getClass().getSimpleName();
         } else {
           exceptionType = t.getClass().getSimpleName();
         }
