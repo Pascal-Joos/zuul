@@ -160,11 +160,7 @@ public class ZuulEndPointRunner
           // whole body has arrived, resume filter chain
           ByteBufUtil.touch(
               newChunk, "Endpoint body complete, resume chain, ZuulMessage: ", zuulReq);
-          final ZuulFilter<HttpRequestMessage, HttpResponseMessage> nextFilter =
-              filter(endpoint, zuulReq);
-          if (nextFilter != null) {
-            invokeNextStage(nextFilter);
-          }
+          invokeNextStage(filter(endpoint, zuulReq));
         }
       }
     } catch (Exception ex) {
