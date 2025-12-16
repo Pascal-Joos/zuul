@@ -53,7 +53,7 @@ public class ZuulSessionContextDecorator implements SessionContextDecorator {
     ChannelHandlerContext nettyCtx =
         (ChannelHandlerContext) ctx.get(CommonContextKeys.NETTY_SERVER_CHANNEL_HANDLER_CONTEXT);
     if (nettyCtx == null) {
-      return ctx;
+      return null;
     }
 
     Channel channel = nettyCtx.channel();
