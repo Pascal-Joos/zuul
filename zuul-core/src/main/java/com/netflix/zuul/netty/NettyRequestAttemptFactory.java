@@ -68,12 +68,9 @@ public class NettyRequestAttemptFactory {
     }
 
     final Throwable cause = t.getCause();
-    if (cause instanceof IllegalStateException) {
-      final String message = cause.getMessage();
-      if (message != null && message.contains("server")) {
-        LOG.warn("IllegalStateException mapped to NO_AVAILABLE_SERVERS", cause);
-        return NO_AVAILABLE_SERVERS;
-      }
+    if (cause instanceof IllegalStateException && cause.getMessage().contains("server")) {
+      LOG.warn("IllegalStateException mapped to NO_AVAILABLE_SERVERS", cause);
+      return NO_AVAILABLE_SERVERS;
     }
 
     return OTHER;
