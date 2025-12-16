@@ -64,7 +64,8 @@ public class SslHandshakeInfoHandler extends ChannelInboundHandlerAdapter {
 
   @VisibleForTesting
   SslHandshakeInfoHandler() {
-    this(new NoopRegistry(), false);
+    spectatorRegistry = null;
+    isSSlFromIntermediary = false;
   }
 
   @Override
