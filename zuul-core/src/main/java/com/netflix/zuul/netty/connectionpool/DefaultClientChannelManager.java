@@ -378,6 +378,13 @@ public class DefaultClientChannelManager implements ClientChannelManager {
       return promise;
     }
 
+    if (key == null) {
+      Promise<PooledConnection> promise = eventLoop.newPromise();
+      promise.setFailure(
+          new OriginConnectException("Null routing key", OutboundErrorType.NO_AVAILABLE_SERVERS));
+      return promise;
+    }
+
     // Choose the next load-balanced server.
     final DiscoveryResult chosenServer = dynamicServerResolver.resolve(key);
 
