@@ -1,0 +1,27 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public Duration computeReadTimeout(HttpRequestMessage request, int attemptNum) {
+    IClientConfig clientConfig = getRequestClientConfig(request);
+    Long originTimeout = getOriginReadTimeout();
+    Long requestTimeout = getRequestReadTimeout(clientConfig);
+
+    long computedTimeout;
+    if (originTimeout == null && requestTimeout == null) {
+      computedTimeout = MAX_OUTBOUND_READ_TIMEOUT_MS.get();
+    } else if (originTimeout == null || requestTimeout == null) {
+      Long nonNullTimeout = originTimeout != null ? originTimeout : requestTimeout;
+      computedTimeout = nonNullTimeout != null ? nonNullTimeout.longValue() : MAX_OUTBOUND_READ_TIMEOUT_MS.get();
+    } else {
+      // return the stricter (i.e. lower) of the two timeouts
+      computedTimeout = Math.min(originTimeout, requestTimeout);
+    }
+
+    // enforce max timeout upperbound
+    return Duration.ofMillis(Math.min(computedTimeout, MAX_OUTBOUND_READ_TIMEOUT_MS.get()));
+  }
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,12 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public ZuulFilterChainRunner(
+      ZuulFilter<T, T>[] zuulFilters, FilterUsageNotifier usageNotifier, Registry registry) {
+    this(zuulFilters, usageNotifier, (FilterRunner<T, ?>) null, registry);
+  }
+  ```
+    ]]>
+  </code>
+</response>

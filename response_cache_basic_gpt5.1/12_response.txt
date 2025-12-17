@@ -1,0 +1,32 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public Server(
+      Registry registry,
+      ServerStatusManager serverStatusManager,
+      Map<NamedSocketAddress, ? extends ChannelInitializer<?>> addressesToInitializers,
+      ClientConnectionsShutdown clientConnectionsShutdown,
+      EventLoopGroupMetrics eventLoopGroupMetrics,
+      EventLoopConfig eventLoopConfig) {
+    this.registry = Objects.requireNonNull(registry);
+    this.addressesToInitializers =
+        Collections.unmodifiableMap(new LinkedHashMap<>(addressesToInitializers));
+    this.serverStatusManager = checkNotNull(serverStatusManager, "serverStatusManager");
+    this.clientConnectionsShutdown =
+        checkNotNull(clientConnectionsShutdown, "clientConnectionsShutdown");
+    this.eventLoopConfig = checkNotNull(eventLoopConfig, "eventLoopConfig");
+    this.eventLoopGroupMetrics = checkNotNull(eventLoopGroupMetrics, "eventLoopGroupMetrics");
+    this.serverGroup =
+        new ServerGroup(
+            this.registry,
+            this.serverStatusManager,
+            this.addressesToInitializers,
+            this.clientConnectionsShutdown,
+            this.eventLoopGroupMetrics,
+            this.eventLoopConfig);
+  }
+  ```
+    ]]>
+  </code>
+</response>

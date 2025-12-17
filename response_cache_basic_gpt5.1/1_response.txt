@@ -1,0 +1,21 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Override
+  public void handle(
+       @Nullable HttpRequestInfo inboundRequest, HttpResponseMessage response) {
+    if (inboundRequest == null) {
+      return;
+    }
+    SessionContext context = inboundRequest.getContext();
+
+    // Publish request-level metrics.
+    if (requestMetricsPublisher != null) {
+      requestMetricsPublisher.collectAndPublish(context);
+    }
+  }
+  ```
+    ]]>
+  </code>
+</response>

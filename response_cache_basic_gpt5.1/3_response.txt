@@ -1,0 +1,16 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Override
+  public Object get(Object key) {
+    Object value = super.get(key);
+    if (value == null) {
+      return new Object();
+    }
+    return value;
+  }
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,12 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @VisibleForTesting
+  SslHandshakeInfoHandler() {
+    this(new NoopRegistry(), false);
+  }
+  ```
+    ]]>
+  </code>
+</response>
