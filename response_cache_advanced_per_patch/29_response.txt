@@ -1,0 +1,18 @@
+<response>
+  <reason><![CDATA[
+The method body is:
+
+public HttpResponseMessage getStaticResponse() {
+    return (HttpResponseMessage) get(KEY_STATIC_RESPONSE);
+}
+
+The returned value comes directly from the result of the method get(KEY_STATIC_RESPONSE), cast to HttpResponseMessage. The nullability of the return value therefore depends entirely on what get(...) returns for the given key.
+
+Since the declaration and implementation of get are not provided, we cannot determine whether get(KEY_STATIC_RESPONSE) can return null. Without that information, we cannot conclude that getStaticResponse will always return a non-null value or that it will definitively return null in some cases.
+
+Because get directly determines the value returned by getStaticResponse, its declaration is required to reason about nullability.]]></reason>
+  <value>UNKNOWN</value>
+  <methods>
+    <method>get</method>
+  </methods>
+</response>

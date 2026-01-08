@@ -1,0 +1,69 @@
+```xml
+<response>
+    <reason><![CDATA[
+We only care about paths that reach the specific line:
+
+    passport.addIfNotAlready(PassportState.FILTERS_OUTBOUND_BUF_START);
+
+That line is reached under these conditions:
+
+1. `limit < filters.length`  
+2. `isAwaitingBody` is true (i.e., `isFilterAwaitingBody(inMesg.getContext()) == true`)
+3. `inMesg.hasCompleteBody()` is false  
+4. `inMesg instanceof HttpResponseMessage` is true  
+5. `CurrentPassport.fromSessionContext(inMesg.getContext())` returns some value assigned to `passport`
+6. `passport != null` (because of the enclosing `if (passport != null)`)
+
+The relevant code:
+
+```java
+boolean isAwaitingBody = isFilterAwaitingBody(inMesg.getContext());
+
+// Record passport states for start and end of buffering bodies.
+if (isAwaitingBody) {
+  CurrentPassport passport = CurrentPassport.fromSessionContext(inMesg.getContext());
+  if (passport != null) {
+    if (inMesg.hasCompleteBody()) {
+      if (inMesg instanceof HttpRequestMessage) {
+        Nullability.castToNonnull(passport).addIfNotAlready(PassportState.FILTERS_INBOUND_BUF_END);
+      } else if (inMesg instanceof HttpResponseMessage) {
+        passport.addIfNotAlready(PassportState.FILTERS_OUTBOUND_BUF_END);
+      }
+    } else {
+      if (inMesg instanceof HttpRequestMessage) {
+        passport.addIfNotAlready(PassportState.FILTERS_INBOUND_BUF_START);
+      } else if (inMesg instanceof HttpResponseMessage) {
+        passport.addIfNotAlready(PassportState.FILTERS_OUTBOUND_BUF_START);
+      }
+    }
+  }
+}
+```
+
+The call of interest is in the last `else if` branch, but it is *syntactically and logically nested* inside:
+
+```java
+CurrentPassport passport = CurrentPassport.fromSessionContext(inMesg.getContext());
+if (passport != null) {
+    ...
+    else if (inMesg instanceof HttpResponseMessage) {
+        passport.addIfNotAlready(...);
+    }
+}
+```
+
+Therefore:
+
+- If `CurrentPassport.fromSessionContext(...)` returns `null`, execution will *not* enter `if (passport != null)`, and the line in question will not run.
+- If execution reaches the line `passport.addIfNotAlready(PassportState.FILTERS_OUTBOUND_BUF_START);`, it is under the guard `if (passport != null)` in the same scope.
+- No reassignment to `passport` occurs between the null check and the call; `passport` is a final (effectively final) local variable in that block.
+
+Under the Java language and normal execution semantics (no bytecode instrumentation changing locals, no undefined behavior), the compiler and runtime guarantee that a variable that has just passed `if (passport != null)` cannot be `null` within that guarded block.
+
+Thus, on all possible control-flow paths that reach the expression, `passport` is non-null.
+
+Note: The explicit `Nullability.castToNonnull(passport)` is only used for the inbound `BUF_END` call; for outbound we rely directly on the `if (passport != null)` guard. This does not weaken the non-null guarantee for outbound usage; it only affects static-analysis hints for tools.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

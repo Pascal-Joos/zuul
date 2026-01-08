@@ -1,0 +1,41 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+    final HttpResponseMessage resp = request.getContext().getStaticResponse();
+
+the method invoked is:
+
+    public HttpResponseMessage getStaticResponse() {
+        return (HttpResponseMessage) get(KEY_STATIC_RESPONSE);
+    }
+
+The return value of getStaticResponse() depends entirely on the result of the method get(KEY_STATIC_RESPONSE), whose declaration and behavior are not provided. Without that declaration, we cannot know:
+
+- Whether get(KEY_STATIC_RESPONSE) can return null.
+- Whether it might throw instead of returning null.
+- Whether it ever guarantees a non-null value for KEY_STATIC_RESPONSE in the specific control flow that leads to this call.
+
+The surrounding logic in getEndpoint(...) shows:
+
+    if (zuulCtx.getStaticResponse() != null) {
+      return STATIC_RESPONSE_ENDPOINT;
+    }
+
+Only when zuulCtx.getStaticResponse() != null does it select STATIC_RESPONSE_ENDPOINT, which ultimately leads to the apply(...) method where the call site is:
+
+    final HttpResponseMessage resp = request.getContext().getStaticResponse();
+    resp.finishBufferedBodyIfIncomplete();
+
+This suggests the intent is that getStaticResponse() be non-null when this call occurs. However, that guarantee still fundamentally depends on get(KEY_STATIC_RESPONSE) having the same behavior between the earlier null-check and this later call (e.g., that it is deterministic, side-effect free, and that KEY_STATIC_RESPONSE is unchanged in the interim). Since we are not allowed to assume behavior of methods whose declarations are not provided, we cannot be certain that:
+
+- get(KEY_STATIC_RESPONSE) will again return a non-null value at the second call, or
+- it cannot ever return null.
+
+Therefore, to make a confident determination about whether getStaticResponse() can return null at this call site, we must inspect the implementation of the get method used inside getStaticResponse().
+  ]]></reason>
+  <success>false</success>
+  <methods>
+    <method>get</method>
+  </methods>
+</response>

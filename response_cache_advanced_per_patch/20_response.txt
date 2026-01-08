@@ -1,0 +1,61 @@
+<response>
+    <reason><![CDATA[
+The expression in question is:
+
+```java
+Nullability.castToNonnull(passport).addIfNotAlready(PassportState.FILTERS_INBOUND_BUF_START);
+```
+
+The relevant control flow is:
+
+```java
+if (isAwaitingBody) {
+  CurrentPassport passport = CurrentPassport.fromSessionContext(inMesg.getContext());
+  if (passport != null) {
+    if (inMesg.hasCompleteBody()) {
+      if (inMesg instanceof HttpRequestMessage) {
+        Nullability.castToNonnull(passport).addIfNotAlready(PassportState.FILTERS_INBOUND_BUF_END);
+      } else if (inMesg instanceof HttpResponseMessage) {
+        Nullability.castToNonnull(passport).addIfNotAlready(PassportState.FILTERS_OUTBOUND_BUF_END);
+      }
+    } else {
+      if (inMesg instanceof HttpRequestMessage) {
+        Nullability.castToNonnull(passport).addIfNotAlready(PassportState.FILTERS_INBOUND_BUF_START);
+      } else if (inMesg instanceof HttpResponseMessage) {
+        Nullability.castToNonnull(passport).addIfNotAlready(PassportState.FILTERS_OUTBOUND_BUF_START);
+      }
+    }
+  }
+}
+```
+
+Key points:
+
+1. `passport` is obtained from:
+   ```java
+   CurrentPassport passport = CurrentPassport.fromSessionContext(inMesg.getContext());
+   ```
+   and thus may be `null` depending on `fromSessionContext`’s behavior.
+
+2. Before any call to `Nullability.castToNonnull(passport)...` there is:
+   ```java
+   if (passport != null) {
+       ...
+       Nullability.castToNonnull(passport).addIfNotAlready(...);
+       ...
+   }
+   ```
+   So all uses of `Nullability.castToNonnull(passport)` are syntactically and semantically guarded by `if (passport != null)`.
+
+3. Therefore, on every execution path that reaches:
+   ```java
+   Nullability.castToNonnull(passport).addIfNotAlready(PassportState.FILTERS_INBOUND_BUF_START);
+   ```
+   the local variable `passport` is guaranteed to be non-null at runtime due to the outer `if (passport != null)` guard.
+
+4. Whether `Nullability.castToNonnull` is a no-op cast or an assertion helper does not change the nullability of the *argument*: the guarantee comes from the explicit `if (passport != null)` check, not from `castToNonnull`.
+
+As a result, at the point of the method call `.addIfNotAlready(...)`, the expression `passport` cannot be null along that execution path.
+    ]]></reason>
+    <value>NO</value>
+</response>

@@ -1,0 +1,24 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private void requestClientToCloseConnection() {
+    ChannelHandlerContext localCtx = this.ctx;
+    if (localCtx != null && localCtx.channel().isActive()) {
+      // Application level protocol for asking client to close connection
+      localCtx.writeAndFlush(pushProtocol.goAwayMessage());
+      // Force close connection if client doesn't close in reasonable time after we made request
+      scheduledFutures.add(
+          localCtx.executor()
+              .schedule(
+                  this::forceCloseConnectionFromServerSide,
+                  CLIENT_CLOSE_GRACE_PERIOD.get(),
+                  TimeUnit.SECONDS));
+    } else {
+      forceCloseConnectionFromServerSide();
+    }
+  }
+  ```
+    ]]>
+  </code>
+</response>

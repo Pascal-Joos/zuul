@@ -1,0 +1,47 @@
+<response>
+  <reason><![CDATA[
+The invocation in question is:
+
+```java
+CurrentPassport passport = CurrentPassport.fromSessionContext(inMesg.getContext());
+```
+
+`fromSessionContext` is:
+
+```java
+public static CurrentPassport fromSessionContext(SessionContext ctx) {
+    return ctx.get(CommonContextKeys.PASSPORT);
+}
+```
+
+So the return value is exactly whatever `SessionContext.get(CommonContextKeys.PASSPORT)` returns.
+
+At this call site, `inMesg` is the same `zuulRequest` that flows through `ZuulFilterChainHandler` and `ZuulFilterChainRunner`. The code you provided does not show any guarantee that:
+
+1. `inMesg.getContext()` always contains a value for key `CommonContextKeys.PASSPORT`, or
+2. `SessionContext.get(...)` is non-null for missing keys.
+
+In fact, in `ClientRequestReceiver` you have:
+
+```java
+final CurrentPassport passport =
+    CurrentPassport.fromSessionContext(zuulRequest.getContext());
+if ((passport != null)
+    && (passport.findState(PassportState.OUT_RESP_LAST_CONTENT_SENT) == null)) {
+    passport.add(PassportState.IN_REQ_CANCELLED);
+}
+```
+
+This explicit null-check on `passport` demonstrates that the developers themselves consider `CurrentPassport.fromSessionContext(...)` potentially nullable for the same kind of context object.
+
+Since:
+
+- `fromSessionContext` is just a thin wrapper around `ctx.get(...)`,
+- there is no provided code that initializes or guarantees the presence of `CommonContextKeys.PASSPORT` in the `SessionContext` for `inMesg`, and
+- another call site treats this method’s result as possibly null,
+
+we must conclude that at this specific call site the method can return null.
+
+Therefore, `CurrentPassport passport = CurrentPassport.fromSessionContext(inMesg.getContext())` can result in `passport` being null.]]></reason>
+  <value>YES</value>
+</response>

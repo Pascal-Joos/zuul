@@ -1,0 +1,22 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public OutboundException mapNettyToOutboundException(
+          final Throwable t, final SessionContext context) {
+        if (t instanceof OutboundException) {
+          return (OutboundException) t;
+        }
+    
+        // Map this throwable to zuul's OutboundException.
+        final ErrorType errorType = mapNettyToOutboundErrorType(t);
+        final RequestAttempts attempts = RequestAttempts.getFromSessionContext(context);
+        if (errorType == OTHER) {
+          return new OutboundException(errorType, Nullability.castToNonnull(attempts), t);
+        }
+        return new OutboundException(errorType, Nullability.castToNonnull(attempts));
+  }
+  ```
+    ]]>
+  </code>
+</response>

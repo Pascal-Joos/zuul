@@ -1,0 +1,29 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the provided method alone, there is no information about:
+
+- How `handle` is invoked (i.e., whether the caller ever passes `null` for `inboundRequest`).
+- Any contract or annotation on `handle(HttpRequestInfo inboundRequest, ...)` that would guarantee `inboundRequest` is non-null (e.g., `@NonNull`, framework guarantees, or interface documentation).
+- The implementation or contract of `HttpRequestInfo.getContext()`—whether it is guaranteed to return a non-null `SessionContext` or may return null in some circumstances.
+
+To determine whether `inboundRequest` can be null at the line `SessionContext context = inboundRequest.getContext();`, we must know either:
+1. That the caller or framework never passes a null `HttpRequestInfo`, or
+2. That there is some explicit null check or defensive code preceding this line (none is shown), or
+3. That the method is implementing/overriding an interface or framework callback that specifies non-null for this parameter and is reliably respected.
+
+Since none of this information is available in the snippet, we cannot soundly conclude that `inboundRequest` is always non-null, nor can we demonstrate a concrete code path where it is null. The same applies to `getContext()` potentially returning null.
+
+Therefore, based only on the given code fragment, it is not possible to definitively state whether `inboundRequest` (and thus the expression `inboundRequest` at that line) can be null. Additional context about the method’s contract and its callers is required.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[
+Provide the interface or superclass that declares the `handle(HttpRequestInfo inboundRequest, HttpResponseMessage response)` method, including any annotations or documentation describing nullability contracts for `inboundRequest`.
+        ]]></request>
+        <request><![CDATA[
+Provide details (or code) showing how and where this `handle` method is invoked, including any frameworks involved (e.g., web framework, HTTP server, or custom dispatcher) and whether they guarantee a non-null `HttpRequestInfo`.
+        ]]></request>
+    </requests>
+</response>
+```

@@ -1,0 +1,21 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @VisibleForTesting
+  public void waitForEachEventLoop() throws InterruptedException, ExecutionException {
+    if (serverGroup == null) {
+      throw new IllegalStateException("Server has not been started");
+    }
+    for (EventExecutor exec : serverGroup.clientToProxyWorkerPool) {
+      exec.submit(
+              () -> {
+                // Do nothing.
+              })
+          .get();
+    }
+  }
+  ```
+    ]]>
+  </code>
+</response>

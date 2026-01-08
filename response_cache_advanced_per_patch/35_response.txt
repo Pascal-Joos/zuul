@@ -1,0 +1,16 @@
+<response>
+  <reason><![CDATA[
+The method body is:
+
+public Map<String, Object> getEventProperties() {
+    return (Map<String, Object>) this.get(KEY_EVENT_PROPS);
+}
+
+The returned value is exactly whatever this.get(KEY_EVENT_PROPS) returns, cast to Map<String, Object>. A cast does not prevent null from being returned; if this.get(KEY_EVENT_PROPS) returns null, the method will return null.
+
+Whether null is possible depends entirely on the implementation of get. Since the declaration and implementation of get are not provided, we cannot guarantee that it never returns null. Therefore, without seeing get, we must treat the possibility of a null return as unknown and request that method’s declaration.]]></reason>
+  <value>UNKNOWN</value>
+  <methods>
+    <method>get</method>
+  </methods>
+</response>

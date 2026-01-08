@@ -1,0 +1,5 @@
+<response>
+    <reason><![CDATA[
+The method name is userEventTriggered, which does not match any of the known framework initializer patterns (e.g., onCreate, init) nor start with "init" or "initialize". It is also not clearly documented or conventionally known as a lifecycle initializer method like those in Android, Servlet, or annotation-processing APIs. While it sets fields (ctx, pushConnection, authEvent), by the criteria you described, only methods explicitly recognized as lifecycle initializers (or whose names start with "init"/"initialize" and are not setters) should be treated as initializer methods. Therefore, this method should not be considered an initializer method for NullAway’s purposes.]]></reason>
+    <value>NO</value>
+</response>

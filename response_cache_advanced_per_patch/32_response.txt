@@ -1,0 +1,49 @@
+```xml
+<response>
+  <reason><![CDATA[
+At the call site
+
+  final HttpResponseMessage resp = request.getContext().getStaticResponse();
+
+the method `SessionContext.getStaticResponse()` is:
+
+  public HttpResponseMessage getStaticResponse() {
+      return (HttpResponseMessage) get(KEY_STATIC_RESPONSE);
+  }
+
+and `get` is:
+
+  @Override
+  public Object get(Object key) {
+      return super.get(key);
+  }
+
+`super.get(key)` is an inherited map-like lookup. Such lookups can legitimately return `null` when the key is not present or when the stored value is itself `null`. There is no non-null guarantee, annotation, or check in `getStaticResponse` that would prevent a `null` from being returned.
+
+The surrounding logic in `ZuulEndPointRunner` shows:
+
+  if (zuulCtx.getStaticResponse() != null) {
+    return STATIC_RESPONSE_ENDPOINT;
+  }
+
+This check is used to decide which endpoint filter to use, and if non-null, `STATIC_RESPONSE_ENDPOINT` is returned. Inside that endpoint's `apply` implementation:
+
+  final HttpResponseMessage resp = request.getContext().getStaticResponse();
+  resp.finishBufferedBodyIfIncomplete();
+  return resp;
+
+there is no repeat of the null-check. Whether `resp` here is null depends entirely on the runtime contents of the `SessionContext` at the moment `apply` is executed, i.e., what `get(KEY_STATIC_RESPONSE)` returns.
+
+Nothing in the provided code ensures that:
+
+1. `KEY_STATIC_RESPONSE` has been set to a non-null value in the context, or
+2. the value associated with `KEY_STATIC_RESPONSE` cannot be cleared/overwritten with null between the earlier `if (zuulCtx.getStaticResponse() != null)` check and the later `apply` call.
+
+Because `get(KEY_STATIC_RESPONSE)` can return `null` (typical map semantics) and no additional guarantees or constraints are shown that would prevent null at this specific call, the invocation
+
+  final HttpResponseMessage resp = request.getContext().getStaticResponse();
+
+can result in `resp` being null.]]></reason>
+  <value>YES</value>
+</response>
+```

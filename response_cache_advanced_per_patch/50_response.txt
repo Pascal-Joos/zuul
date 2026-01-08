@@ -1,0 +1,42 @@
+<response>
+  <reason><![CDATA[
+The return value of `SessionContext.getFilterErrors()` is exactly whatever is returned by `get(KEY_FILTER_ERRORS)` cast to `List<FilterError>`:
+
+```java
+public List<FilterError> getFilterErrors() {
+    return (List<FilterError>) get(KEY_FILTER_ERRORS);
+}
+```
+
+At the call site:
+
+```java
+zuulCtx
+    .getFilterErrors()
+    .add(new FilterError(...));
+```
+
+the method is invoked on `zuulCtx`, which is obtained from:
+
+```java
+final SessionContext zuulCtx = inMesg.getContext();
+```
+
+However, there is no information provided about:
+
+- how or when `KEY_FILTER_ERRORS` is populated in the `SessionContext`, or
+- what `SessionContext.get(Object key)` does when the key has never been set, is removed, or is set to `null`.
+
+By the given guidelines, I must not assume behavior of `get(...)` without its declaration. In many typical implementations (e.g., a `Map`-backed context), `get(KEY_FILTER_ERRORS)` would return `null` if the key is absent. If that is the case here, then:
+
+- `getFilterErrors()` would return `null`, and
+- the call `zuulCtx.getFilterErrors().add(...)` would cause a `NullPointerException`.
+
+But it is also possible that `get(KEY_FILTER_ERRORS)` lazily initializes and returns a non-null `List<FilterError>` when first accessed, in which case the call would never return `null`.
+
+Because the nullability of `getFilterErrors()` at this call site depends entirely on the behavior of the `get` method (and on how `KEY_FILTER_ERRORS` is managed internally), and that behavior is not provided, I cannot make a confident determination under the stated rules without seeing `get`’s declaration.]]></reason>
+  <success>false</success>
+  <methods>
+    <method>get</method>
+  </methods>
+</response>

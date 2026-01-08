@@ -1,0 +1,36 @@
+```xml
+<response>
+    <reason><![CDATA[
+Based solely on the provided method:
+
+    protected void keepAlive() {
+          if (KEEP_ALIVE_ENABLED.get() && ctx != null) {
+            ctx.writeAndFlush(new PingWebSocketFrame());
+          }
+    }
+
+we can see there is an explicit null check on `ctx` in the `if` condition (`ctx != null`) before `ctx.writeAndFlush(...)` is invoked. Within this single method, and assuming no concurrent modification of `ctx` between the null check and the call, `ctx` cannot be null at the call site.
+
+However, to conclusively determine whether `ctx` can be null at that line in the actual program, we would need to know:
+
+- How and where `ctx` is declared (field vs. local vs. parameter).
+- All points where `ctx` is assigned, including any assignments to `null`.
+- Whether `keepAlive()` can be called concurrently with other methods that might change `ctx`, and whether `ctx` is properly synchronized or volatile.
+- Any invariants or contracts that guarantee `ctx` is non-null (e.g., set once in a constructor and never cleared).
+
+Because this broader context is not provided, we cannot rule out:
+- That `ctx` might be null when `keepAlive()` is invoked (in which case the body of the `if` is skipped, so the call is safe).
+- That some concurrent thread might set `ctx` to null after the null check and before `writeAndFlush` is executed, if there is no proper synchronization (this is a data race scenario).
+
+Without information on the declaration, lifecycle, and thread-safety guarantees around `ctx`, it is not possible to definitively prove that `ctx` cannot become null between the check and the call or that it is always initialized before `keepAlive()` is ever invoked.
+
+Therefore, based on the given snippet alone and without the surrounding class and concurrency model, we cannot conclusively determine whether `ctx` is guaranteed to be non-null at the call site under all program executions.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Show where and how `ctx` is declared (field/local/parameter) and its type.]]></request>
+        <request><![CDATA[Show all methods/constructors where `ctx` is assigned, including any places it may be set to null.]]></request>
+        <request><![CDATA[Describe whether `keepAlive()` and any methods modifying `ctx` can run concurrently, and whether `ctx` is volatile or access is synchronized.]]></request>
+    </requests>
+</response>
+```

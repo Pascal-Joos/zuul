@@ -1,0 +1,102 @@
+```xml
+<response>
+    <reason><![CDATA[
+In the relevant branch we have:
+
+    } else {
+      String clientIP =
+          ctx.channel().attr(SourceAddressChannelHandler.ATTR_SOURCE_ADDRESS).get();
+      Throwable cause = sslEvent.cause();
+
+      ...
+      } else if (cause instanceof SSLException
+          && cause.getMessage().contains("handshake timed out")) {
+        ...
+      } else if (cause instanceof SSLException
+          && cause.getMessage().contains("failure when writing TLS control frames")) {
+        ...
+
+The question is whether `cause.getMessage()` can be null in:
+
+    } else if (cause instanceof SSLException
+        && cause.getMessage().contains("failure when writing TLS control frames")) {
+
+Analysis of all relevant aspects:
+
+1. **`cause` nullability from `sslEvent.cause()`**
+
+   The `evt` here is an `SslHandshakeCompletionEvent`. In Netty, this class is defined (simplified) as:
+
+   ```java
+   public final class SslHandshakeCompletionEvent extends SslCompletionEvent {
+       public SslHandshakeCompletionEvent(Throwable cause) {
+           super(cause);
+       }
+
+       public boolean isSuccess() {
+           return cause() == null;
+       }
+   }
+   ```
+
+   For unsuccessful handshakes (the `else` branch `if (sslEvent.isSuccess()) { ... } else { ... }`), Netty constructs the event with a non-null `Throwable` cause. If `cause` were null, `isSuccess()` would be `true` and the code would not enter this `else` block at all.
+
+   Therefore, inside the `else` block, `cause` is guaranteed non-null by the contract of `SslHandshakeCompletionEvent` and the preceding `if (sslEvent.isSuccess())`.
+
+2. **Nullability of `cause.getMessage()`**
+
+   The `getMessage()` method comes from `java.lang.Throwable`:
+
+   ```java
+   public String getMessage() {
+       return detailMessage;
+   }
+   ```
+
+   `detailMessage` is set from the constructor, and there is no guarantee in Java that a `Throwable` (or any subclass like `SSLException`) must have a non-null message. A `Throwable` can be constructed with:
+
+   ```java
+   new SSLException(null);
+   new SSLException((String) null, cause);
+   ```
+
+   or without any-arg message constructor that internally may leave `detailMessage` as `null`, depending on the implementation.
+
+   The Netty framework and the JDK do not provide a universal guarantee that any `SSLException` that appears as an `SslHandshakeCompletionEvent` cause will always have a non-null message. Absent a stronger, explicit guarantee from the libraries (which does not exist in the general contracts), `cause.getMessage()` must be treated as potentially null.
+
+3. **Control flow checks before the `contains` call**
+
+   The branch in question is only guarded by:
+
+   ```java
+   else if (cause instanceof SSLException
+       && cause.getMessage().contains("failure when writing TLS control frames"))
+   ```
+
+   There is no preceding null-check on `cause.getMessage()`. Java’s `&&` will short-circuit the second operand if `cause instanceof SSLException` is false, but once that is true, it will evaluate `cause.getMessage().contains(...)`. If `getMessage()` returns null, this will be a `NullPointerException`.
+
+4. **Conclusion**
+
+   - `cause` itself is **not null** in this code path (because we are in the `!sslEvent.isSuccess()` branch).
+   - `cause.getMessage()` has **no general guarantee** of being non-null, even for `SSLException`.
+   - Therefore, `cause.getMessage()` can be null and can throw a `NullPointerException` at the `.contains(...)` call.
+
+   Defensive coding here should be:
+
+   ```java
+   } else if (cause instanceof SSLException) {
+       String msg = cause.getMessage();
+       if (msg != null && msg.contains("failure when writing TLS control frames")) {
+           ...
+       } else if (msg != null && msg.contains("handshake timed out")) {
+           ...
+       }
+   }
+   ```
+
+   or equivalently, a null-safe utility.
+
+    ]]></reason>
+    <value>YES</value>
+</response>
+```

@@ -1,0 +1,36 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+    final HttpRequest nativeReq =
+        (HttpRequest) zuulResp.getContext().get(CommonContextKeys.NETTY_HTTP_REQUEST);
+
+the value comes from `SessionContext.get(Object key)`, which is just:
+
+```java
+@Override
+public Object get(Object key) {
+  return super.get(key);
+}
+```
+
+So nullability depends entirely on whether the key `CommonContextKeys.NETTY_HTTP_REQUEST` has been put into the underlying map in the current `SessionContext`.
+
+From the provided code:
+
+- Many different keys are added to and read from the `SessionContext` (`ORIGIN_MANAGER`, `REQUEST_ATTEMPTS`, `PASSPORT`, various debug keys, etc.).
+- There are multiple `ctx.get(...)` usages that *explicitly* check for null and handle it (e.g. `if (nettyCtx == null)`, `if (overrideIsGzipRequested == null)`, `if (zuulCtx.getStaticResponse() != null)`, `if (primaryRoute is null/empty then return null origin`, etc.).
+- Nowhere in the supplied code is there any write to the context for `CommonContextKeys.NETTY_HTTP_REQUEST`.
+- Nowhere is there any assertion or `checkNotNull` guaranteeing that `ctx.get(CommonContextKeys.NETTY_HTTP_REQUEST)` is non‑null.
+
+Because:
+
+1. We are not given any code that sets `CommonContextKeys.NETTY_HTTP_REQUEST` into the `SessionContext`, and
+2. The underlying `Map`-like behavior (`super.get(key)`) can legally return null when a key is absent or mapped to null,
+3. There is no defensive check at this particular call site (the value is immediately cast and used, e.g. `HttpUtil.isKeepAlive(nativeReq)` and `nativeReq.headers()`),
+
+we must conclude that, from the information available, `get(CommonContextKeys.NETTY_HTTP_REQUEST)` **can** evaluate to null at this call site.
+
+Absent the (missing) code that populates this key, we cannot prove that it is always set to a non‑null `HttpRequest` before `buildHttpResponse` is called, so null remains a possible outcome of this `get` invocation.]]></reason>
+  <value>YES</value>
+</response>

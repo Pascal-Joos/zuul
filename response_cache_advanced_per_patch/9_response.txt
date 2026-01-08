@@ -1,0 +1,50 @@
+```xml
+<response>
+    <reason><![CDATA[
+The nullability of `passport` at `passport.addIfNotAlready(PassportState.FILTERS_OUTBOUND_BUF_END);` depends entirely on the behavior of:
+
+```java
+CurrentPassport.fromSessionContext(inMesg.getContext())
+```
+
+Within the shown method:
+
+1. `passport` is declared and assigned exactly once in this block:
+   ```java
+   if (isAwaitingBody) {
+     CurrentPassport passport = CurrentPassport.fromSessionContext(inMesg.getContext());
+     if (inMesg.hasCompleteBody()) {
+       if (inMesg instanceof HttpRequestMessage) {
+         passport.addIfNotAlready(PassportState.FILTERS_INBOUND_BUF_END);
+       } else if (inMesg instanceof HttpResponseMessage) {
+         passport.addIfNotAlready(PassportState.FILTERS_OUTBOUND_BUF_END);
+       }
+     } else {
+       if (inMesg instanceof HttpRequestMessage) {
+         passport.addIfNotAlready(PassportState.FILTERS_INBOUND_BUF_START);
+       } else if (inMesg instanceof HttpResponseMessage) {
+         passport.addIfNotAlready(PassportState.FILTERS_OUTBOUND_BUF_START);
+       }
+     }
+   }
+   ```
+
+2. There is no null-check on `passport` after the assignment and before its use.
+
+3. The only thing that can make `passport` null is if:
+   - `CurrentPassport.fromSessionContext(...)` can return `null`, or
+   - `inMesg.getContext()` can be `null` and the method returns `null` (instead of throwing).
+
+4. The rest of the method does not enforce any non-null contract on `inMesg.getContext()` or on the result of `fromSessionContext`. There are no prior checks like:
+   - `Objects.requireNonNull(inMesg.getContext())`, or
+   - `Preconditions.checkNotNull(passport, ...)`.
+
+5. Java’s type system itself does not guarantee non-nullness of `passport`: `CurrentPassport` is a reference type, and without annotations or explicit checks, it may be `null`.
+
+Therefore, without additional guarantees from the implementation/contract of `CurrentPassport.fromSessionContext` (or from the type/contract of the session context returned by `inMesg.getContext()`), it is entirely possible for that method to return `null`. If it does, then `passport` will be `null` and the call `passport.addIfNotAlready(...)` will result in a `NullPointerException`.
+
+Because the provided code and standard Java semantics do not rule out a `null` return, and no non-null contract is shown, the safe conclusion from the snippet alone is that `passport` *can* be `null` on that line.
+    ]]></reason>
+    <value>YES</value>
+</response>
+```

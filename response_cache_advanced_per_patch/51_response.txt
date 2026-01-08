@@ -1,0 +1,37 @@
+<response>
+  <reason><![CDATA[
+The call site is:
+
+```java
+zuulCtx
+    .getFilterErrors()
+    .add(new FilterError(...));
+```
+
+`SessionContext.getFilterErrors()` is implemented as:
+
+```java
+public List<FilterError> getFilterErrors() {
+    return (List<FilterError>) get(KEY_FILTER_ERRORS);
+}
+```
+
+and `get` is:
+
+```java
+@Override
+public Object get(Object key) {
+    return super.get(key);
+}
+```
+
+This `get` method simply returns whatever `super.get(key)` returns. We have no guarantees in the provided code that:
+
+1. `KEY_FILTER_ERRORS` is always present in the underlying map, or  
+2. The value associated with `KEY_FILTER_ERRORS` is initialized to a non-null `List<FilterError>` before `recordFilterError` is called.
+
+If `KEY_FILTER_ERRORS` is not set, `super.get(key)` can legitimately return `null`, which then flows unchanged through `get(KEY_FILTER_ERRORS)` and is cast to `(List<FilterError>)`. The cast itself does not prevent `null`; it just changes the static type. Thus `getFilterErrors()` can return `null` at this call site, in which case `zuulCtx.getFilterErrors().add(...)` would throw a `NullPointerException`.
+
+Nothing in the shown call chain (including `handleFilterException` and `recordFilterError`) initializes `KEY_FILTER_ERRORS` or checks for null before calling `getFilterErrors()`. Therefore, based solely on the provided definitions, the result of `zuulCtx.getFilterErrors()` can be null at this specific invocation.]]></reason>
+  <value>YES</value>
+</response>

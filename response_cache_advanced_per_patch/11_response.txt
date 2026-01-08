@@ -1,0 +1,27 @@
+<response>
+  <reason><![CDATA[
+The method `CurrentPassport.fromSessionContext(SessionContext ctx)` is:
+
+```java
+public static CurrentPassport fromSessionContext(SessionContext ctx) {
+    return ctx.get(CommonContextKeys.PASSPORT);
+}
+```
+
+and `SessionContext.get` is:
+
+```java
+@SuppressWarnings("unchecked")
+public <T> T get(Key<T> key) {
+    return (T) typedMap.get(Objects.requireNonNull(key, "key"));
+}
+```
+
+The return value of `fromSessionContext` is exactly whatever `ctx.get(CommonContextKeys.PASSPORT)` returns. The `get` method simply delegates to `typedMap.get(...)` and casts the result. A standard `Map.get` (and there is no indication this is anything else) may return `null` when the key is not present or the associated value is `null`.
+
+No checks or transformations in `fromSessionContext` or `SessionContext.get` guarantee non-null. There are no other methods involved that influence the return value. Therefore, if `typedMap` does not contain a non-null value for `CommonContextKeys.PASSPORT`, the call chain will return `null`.
+
+Hence, based solely on the given bodies, `fromSessionContext` can return `null` under valid, non-exceptional conditions.
+  ]]></reason>
+  <value>YES</value>
+</response>

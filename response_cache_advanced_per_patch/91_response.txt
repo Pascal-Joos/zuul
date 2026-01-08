@@ -1,0 +1,49 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void incrementCounters(
+      SslHandshakeCompletionEvent sslHandshakeCompletionEvent,
+       SslHandshakeInfo handshakeInfo) {
+    if (spectatorRegistry == null) {
+      // May be null for testing.
+      return;
+    }
+    try {
+      if (sslHandshakeCompletionEvent.isSuccess()) {
+        String proto =
+            Nullability.castToNonnull(handshakeInfo).getProtocol().length() > 0 ? Nullability.castToNonnull(handshakeInfo).getProtocol() : "unknown";
+        String ciphsuite =
+            Nullability.castToNonnull(handshakeInfo).getCipherSuite().length() > 0
+                ? Nullability.castToNonnull(handshakeInfo).getCipherSuite()
+                : "unknown";
+        spectatorRegistry
+            .counter(
+                "server.ssl.handshake",
+                "success",
+                String.valueOf(sslHandshakeCompletionEvent.isSuccess()),
+                "protocol",
+                String.valueOf(proto),
+                "ciphersuite",
+                String.valueOf(ciphsuite),
+                "clientauth",
+                String.valueOf(Nullability.castToNonnull(handshakeInfo).getClientAuthRequirement()))
+            .increment();
+      } else {
+        spectatorRegistry
+            .counter(
+                "server.ssl.handshake",
+                "success",
+                String.valueOf(sslHandshakeCompletionEvent.isSuccess()),
+                "failure_cause",
+                String.valueOf(sslHandshakeCompletionEvent.cause()))
+            .increment();
+      }
+    } catch (Exception e) {
+      logger.error("Error incrememting counters for SSL handshake!", e);
+    }
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,29 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the provided method alone, there is no explicit guarantee that `resp` is non-null:
+
+    final HttpResponseMessage resp = request.getContext().getStaticResponse();
+    resp.finishBufferedBodyIfIncomplete();
+
+`resp` is assigned from `request.getContext().getStaticResponse()`. Whether `resp` can be null depends entirely on the contract and implementation of:
+
+1. `request.getContext()`
+2. `getContext().getStaticResponse()`
+
+Within this snippet:
+- There are no null checks on `request`, `request.getContext()`, or the return value of `getStaticResponse()`.
+- There is no defensive programming (e.g., `Objects.requireNonNull`, assertions, or if-checks) around `resp` before dereferencing it.
+- The code assumes `getStaticResponse()` always returns a non-null `HttpResponseMessage`.
+
+Without the definition or documented contract of `getStaticResponse()`, we cannot safely conclude that it *cannot* return null. In typical Java APIs, unless a method is explicitly documented or annotated (e.g., `@Nonnull`) to never return null, returning null is possible. Therefore, strictly from this code and without further guarantees, we cannot determine that `resp` is always non-null, nor can we definitively assert that it can be null.
+
+Additional information about the implementation or specification of `getStaticResponse()` is required to make a definitive determination.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation or API contract (e.g., Javadoc, annotations) for request.getContext().getStaticResponse().]]></request>
+        <request><![CDATA[Indicate whether the framework or library in use guarantees that a static response is always present for this code path.]]></request>
+    </requests>
+</response>
+```

@@ -1,0 +1,24 @@
+```xml
+<response>
+    <reason><![CDATA[
+The expression in question is evaluated on the `else if (t instanceof SSLHandshakeException)` branch:
+
+    } else if (t instanceof SSLHandshakeException) {
+        error = t.getMessage();
+        exceptionType = t.getClass().getSimpleName();
+        cause = t.getCause().getMessage();
+    }
+
+Here, no null check is performed on `t.getCause()` before calling `getMessage()`.
+
+From the method's control flow:
+
+- The outermost check guarantees only that `t != null`.
+- For the `SSLHandshakeException` branch, the only additional guarantee is that `t` is an instance of `SSLHandshakeException`.
+- The `Throwable.getCause()` method in Java is allowed to return `null` if there is no cause associated with the throwable. There is no contract on `SSLHandshakeException` that guarantees it always has a non-null cause.
+- Therefore, for some `SSLHandshakeException` instances, `t.getCause()` can be `null`, and the expression `t.getCause().getMessage()` would attempt to dereference a null, causing a `NullPointerException`.
+
+Thus, `t.getCause()` at that line can indeed be null.]]></reason>
+    <value>YES</value>
+</response>
+```

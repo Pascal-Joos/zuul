@@ -1,0 +1,17 @@
+<response>
+  <reason><![CDATA[I only have the method signature for com.netflix.zuul.FilterLoader#getFiltersByType(FilterType), not its body. Without seeing its implementation, I cannot determine whether it ever returns null or always returns a non-null SortedSet (possibly empty).
+
+At the call site
+  final SortedSet<ZuulFilter<?, ?>> zuulFilters =
+      filterLoader.getFiltersByType(start.filterType());
+the nullability of the result depends entirely on the internal logic of getFiltersByType. That logic might:
+- Always create and return a non-null (possibly empty) SortedSet, or
+- Return null if there are no filters of that type, or if some internal lookup fails, or
+- Delegate to other methods whose behavior is unknown.
+
+Because the full declaration (including implementation) of getFiltersByType is not provided, I cannot confidently assert whether it can or cannot return null at this specific call site. I need to inspect that method’s implementation to make a precise determination.]]></reason>
+  <success>false</success>
+  <methods>
+    <method>getFiltersByType</method>
+  </methods>
+</response>

@@ -1,0 +1,63 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private ChannelFuture setupServerBootstrap(
+        NamedSocketAddress listenAddress, ChannelInitializer<?> channelInitializer)
+        throws InterruptedException {
+      if (serverGroup == null) {
+        throw new IllegalStateException("Server has not been started");
+      }
+      ServerBootstrap serverBootstrap =
+          new ServerBootstrap()
+              .group(Nullability.castToNonnull(serverGroup).clientToProxyBossPool, Nullability.castToNonnull(serverGroup).clientToProxyWorkerPool);
+  
+      // Choose socket options.
+      Map<ChannelOption<?>, Object> channelOptions = new HashMap<>();
+      channelOptions.put(ChannelOption.SO_BACKLOG, 128);
+      channelOptions.put(ChannelOption.SO_LINGER, -1);
+      channelOptions.put(ChannelOption.TCP_NODELAY, true);
+      channelOptions.put(ChannelOption.SO_KEEPALIVE, true);
+  
+      LOG.info("Proxy listening with {}", Nullability.castToNonnull(serverGroup).channelType);
+      serverBootstrap.channel(Nullability.castToNonnull(serverGroup).channelType);
+  
+      // Apply socket options.
+      for (Map.Entry<ChannelOption<?>, ?> optionEntry : channelOptions.entrySet()) {
+        serverBootstrap =
+            serverBootstrap.option((ChannelOption) optionEntry.getKey(), optionEntry.getValue());
+      }
+      // Apply transport specific socket options.
+      for (Map.Entry<ChannelOption<?>, ?> optionEntry :
+          Nullability.castToNonnull(serverGroup).transportChannelOptions.entrySet()) {
+        serverBootstrap =
+            serverBootstrap.option((ChannelOption) optionEntry.getKey(), optionEntry.getValue());
+      }
+  
+      serverBootstrap.handler(new NewConnHandler());
+      serverBootstrap.childHandler(channelInitializer);
+      serverBootstrap.validate();
+  
+      LOG.info("Binding to : {}", listenAddress);
+  
+      if (MANUAL_DISCOVERY_STATUS.get()) {
+        // Flag status as UP just before binding to the port.
+        serverStatusManager.localStatus(InstanceInfo.InstanceStatus.UP);
+      }
+  
+      // Bind and start to accept incoming connections.
+      ChannelFuture bindFuture = serverBootstrap.bind(listenAddress.unwrap());
+  
+      try {
+        return bindFuture.sync();
+      } catch (Exception e) {
+        // sync() sneakily throws a checked Exception, but doesn't declare it. This can happen if
+        // there is a bind
+        // failure, which is typically an IOException.  Just chain it and rethrow.
+        throw new RuntimeException("Failed to bind on addr " + listenAddress, e);
+      }
+}
+  ```
+    ]]>
+  </code>
+</response>
