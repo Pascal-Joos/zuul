@@ -25,7 +25,6 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.zuul.netty.ChannelUtils;
 import com.netflix.zuul.passport.CurrentPassport;
 import com.netflix.zuul.passport.PassportState;
-import edu.ucr.cs.riple.annotator.util.Nullability;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.ssl.ClientAuth;
@@ -209,12 +208,10 @@ public class SslHandshakeInfoHandler extends ChannelInboundHandlerAdapter {
     try {
       if (sslHandshakeCompletionEvent.isSuccess()) {
         String proto =
-            Nullability.castToNonnull(handshakeInfo).getProtocol().length() > 0
-                ? Nullability.castToNonnull(handshakeInfo).getProtocol()
-                : "unknown";
+            handshakeInfo.getProtocol().length() > 0 ? handshakeInfo.getProtocol() : "unknown";
         String ciphsuite =
-            Nullability.castToNonnull(handshakeInfo).getCipherSuite().length() > 0
-                ? Nullability.castToNonnull(handshakeInfo).getCipherSuite()
+            handshakeInfo.getCipherSuite().length() > 0
+                ? handshakeInfo.getCipherSuite()
                 : "unknown";
         spectatorRegistry
             .counter(
@@ -226,7 +223,7 @@ public class SslHandshakeInfoHandler extends ChannelInboundHandlerAdapter {
                 "ciphersuite",
                 String.valueOf(ciphsuite),
                 "clientauth",
-                String.valueOf(Nullability.castToNonnull(handshakeInfo).getClientAuthRequirement()))
+                String.valueOf(handshakeInfo.getClientAuthRequirement()))
             .increment();
       } else {
         spectatorRegistry
