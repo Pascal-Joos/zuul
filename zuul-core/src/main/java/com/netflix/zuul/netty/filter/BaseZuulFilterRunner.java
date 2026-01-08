@@ -340,6 +340,7 @@ public abstract class BaseZuulFilterRunner<I extends ZuulMessage, O extends Zuul
 
   protected void recordFilterError(
       final I inMesg, final ZuulFilter<I, O> filter, final Throwable t) {
+    // Add a log statement for this exception.
     final String errorMsg =
         "Filter Exception: filter="
             + filter.filterName()
@@ -356,10 +357,9 @@ public abstract class BaseZuulFilterRunner<I extends ZuulMessage, O extends Zuul
     // Store this filter error for possible future use. But we still continue with next filter in
     // the chain.
     final SessionContext zuulCtx = inMesg.getContext();
-    final List<FilterError> filterErrors = zuulCtx.getFilterErrors();
-    if (filterErrors != null) {
-      filterErrors.add(new FilterError(filter.filterName(), filter.filterType().toString(), t));
-    }
+    zuulCtx
+        .getFilterErrors()
+        .add(new FilterError(filter.filterName(), filter.filterType().toString(), t));
     if (zuulCtx.debugRouting()) {
       Debug.addRoutingDebug(
           zuulCtx,
