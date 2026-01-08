@@ -25,7 +25,6 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.zuul.netty.ChannelUtils;
 import com.netflix.zuul.passport.CurrentPassport;
 import com.netflix.zuul.passport.PassportState;
-import edu.ucr.cs.riple.annotator.util.Nullability;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.ssl.ClientAuth;
@@ -55,7 +54,7 @@ public class SslHandshakeInfoHandler extends ChannelInboundHandlerAdapter {
       AttributeKey.newInstance("_ssl_handshake_info");
   private static final Logger logger = LoggerFactory.getLogger(SslHandshakeInfoHandler.class);
 
-  @Nullable private final Registry spectatorRegistry;
+  private final Registry spectatorRegistry;
   private final boolean isSSlFromIntermediary;
 
   public SslHandshakeInfoHandler(Registry spectatorRegistry, boolean isSSlFromIntermediary) {
@@ -175,15 +174,9 @@ public class SslHandshakeInfoHandler extends ChannelInboundHandlerAdapter {
 
       SniCompletionEvent sniCompletionEvent = (SniCompletionEvent) evt;
       if (sniCompletionEvent.isSuccess()) {
-        if (spectatorRegistry == null) {
-          return;
-        }
-        Nullability.castToNonnull(spectatorRegistry).counter("zuul.sni.parse.success").increment();
+        spectatorRegistry.counter("zuul.sni.parse.success").increment();
       } else {
         Throwable cause = sniCompletionEvent.cause();
-        if (spectatorRegistry == null) {
-          return;
-        }
         spectatorRegistry
             .counter(
                 "zuul.sni.parse.failure", "cause", cause != null ? cause.getMessage() : "UNKNOWN")
