@@ -1,0 +1,18 @@
+<response>
+  <reason><![CDATA[
+The method body is:
+
+public StringBuilder getFilterExecutionSummary() {
+    return (StringBuilder) get(KEY_FILTER_EXECS);
+}
+
+The returned value is exactly whatever `get(KEY_FILTER_EXECS)` returns, cast to `StringBuilder`. There is no additional logic that would guarantee a non-null value or replace null with a non-null default. Therefore, if `get(KEY_FILTER_EXECS)` returns null, this method will also return null (the cast allows null).
+
+However, the implementation of `get` is not provided. Whether `get(KEY_FILTER_EXECS)` can return null depends entirely on the behavior of `get`. Without its declaration, we cannot conclude that `getFilterExecutionSummary()` will always be non-null or that it can be null.
+
+Because `get` directly determines the return value and its implementation is unknown, we must treat the nullability of this method's return as unknown until the `get` method declaration is provided.]]></reason>
+  <value>UNKNOWN</value>
+  <methods>
+    <method>get</method>
+  </methods>
+</response>

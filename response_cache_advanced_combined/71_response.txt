@@ -1,0 +1,22 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within this method, the only relevant control-flow check is:
+
+    if (serverGroup == null) {
+        throw new IllegalStateException("Server has not been started");
+    }
+
+This guarantees that if execution reaches the line
+
+    .group(serverGroup.clientToProxyBossPool, serverGroup.clientToProxyWorkerPool);
+
+then `serverGroup` itself is non-null along that path.
+
+The question is strictly about the nullability of the expression `serverGroup` at that line, not of its fields (`clientToProxyBossPool` / `clientToProxyWorkerPool`). Given the explicit null check and immediate throw on null, `serverGroup` cannot be null when the expression is evaluated.
+
+No other code path in this method assigns `serverGroup`, and no other control-flow can bypass the null-check before the `.group(...)` call. Thus, under standard Java semantics, `serverGroup` cannot be null at that expression within this method.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

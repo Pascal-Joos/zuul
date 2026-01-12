@@ -1,0 +1,13 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+protected void keepAlive() {
+    if (KEEP_ALIVE_ENABLED.get() && ctx != null) {
+      ctx.writeAndFlush(new PingWebSocketFrame());
+    }
+}
+  ```
+    ]]>
+  </code>
+</response>

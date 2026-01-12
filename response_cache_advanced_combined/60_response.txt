@@ -1,0 +1,21 @@
+<response>
+  <reason><![CDATA[
+The body of the method
+
+  SortedSet<ZuulFilter<?, ?>> getFiltersByType(FilterType filterType)
+
+has not been provided at all—only its signature and class are shown. Without seeing the implementation, I cannot determine:
+
+- What it returns on each control path.
+- Whether it calls other methods whose return values flow into its own return.
+- Whether it ever explicitly returns null or an empty but non-null collection.
+
+Since the method’s return value does not depend on any other disclosed method bodies (none are provided), there are no additional method declarations to request. However, I still need the actual implementation of getFiltersByType to reason about whether it can return null.
+
+Please provide the full method body of getFiltersByType.
+  ]]></reason>
+  <value>UNKNOWN</value>
+  <requests>
+    <request><![CDATA[Please provide the full implementation (body) of getFiltersByType in com.netflix.zuul.FilterLoader.]]></request>
+  </requests>
+</response>

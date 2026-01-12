@@ -1,0 +1,34 @@
+```xml
+<response>
+    <reason><![CDATA[
+We only reach the line 
+
+    exceptionType = t.getCause().getClass().getSimpleName();
+
+inside the OriginConnectException branch:
+
+    } else if (t instanceof OriginConnectException) {
+        ...
+        final Throwable cause = t.getCause();
+        if (cause != null) {
+          exceptionType = t.getCause().getClass().getSimpleName();
+        } else {
+          exceptionType = t.getClass().getSimpleName();
+        }
+
+Here, `cause` is assigned from `t.getCause()` and then explicitly checked:
+
+    if (cause != null) {
+        exceptionType = t.getCause().getClass().getSimpleName();
+    } else {
+        ...
+    }
+
+So at the point where `t.getCause()` is dereferenced to call `.getClass()`, we are in the true branch of `if (cause != null)`. Since `cause` and `t.getCause()` are the same value (no modifications to `t` between the assignment and the `if`), the null check on `cause` ensures that `t.getCause()` is non-null at that moment.
+
+No other code path reaches that particular line, and the Java `Throwable.getCause()` method can indeed return null in general, but in this specific branch the subsequent null check on `cause` guarantees it is not null when used in that expression.
+
+Therefore, on any path where this expression is evaluated, `t.getCause()` cannot be null.]]></reason>
+    <value>NO</value>
+</response>
+```

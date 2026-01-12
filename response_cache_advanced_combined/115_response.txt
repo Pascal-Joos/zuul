@@ -1,0 +1,42 @@
+<response>
+  <reason><![CDATA[
+At the call site in question, `t.getCause()` is invoked inside:
+
+```java
+} else if (t instanceof OriginConnectException) {
+    ...
+    final Throwable cause = t.getCause();
+    if (cause != null) {
+      exceptionType = Nullability.castToNonnull(t.getCause()).getClass().getSimpleName();
+    } else {
+      exceptionType = t.getClass().getSimpleName();
+    }
+}
+```
+
+This branch is executed only when:
+1. `t` is non-null (enforced by `if (t != null)` at the top of `setException`), and  
+2. `t` is an instance of `OriginConnectException`.
+
+In Java, `Throwable.getCause()` is declared as:
+
+```java
+public synchronized Throwable getCause()
+```
+
+and it is explicitly documented as being allowed to return `null` (e.g., if no cause was set).
+
+The surrounding code already treats `t.getCause()` as potentially null:
+
+```java
+final Throwable cause = t.getCause();
+if (cause != null) {
+    // use cause
+} else {
+    // fall back
+}
+```
+
+So at this specific call site, `t.getCause()` is not constrained or guarded in any way that would prevent it from being null. The fact that `t` is a non-null `OriginConnectException` does not imply that its cause is non-null. Therefore, `t.getCause()` can be `null` here. The subsequent call to `Nullability.castToNonnull(t.getCause())` is only executed when the separately stored `cause` is checked for non-null, but that does not change the fact that the invocation `t.getCause()` itself can yield `null`.]]></reason>
+  <value>YES</value>
+</response>

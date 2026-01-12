@@ -1,0 +1,14 @@
+<response>
+  <reason><![CDATA[
+The return value of getFilterErrors() is entirely determined by the result of the call to get(KEY_FILTER_ERRORS). We have not been given the declaration or implementation of the get method, so we cannot know:
+
+- Whether get(...) is guaranteed to never return null.
+- Whether get(...) may return null when no value is associated with KEY_FILTER_ERRORS, or under some other condition.
+
+Since get(...) directly affects the return value and its behavior is unknown, we cannot safely conclude whether getFilterErrors() can or cannot return null without seeing get’s declaration/implementation.
+  ]]></reason>
+  <value>UNKNOWN</value>
+  <methods>
+    <method>get</method>
+  </methods>
+</response>

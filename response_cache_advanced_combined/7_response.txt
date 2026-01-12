@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public static StatusCategory getStatusCategory( SessionContext ctx) {
+      return Nullability.castToNonnull(ctx).get(CommonContextKeys.STATUS_CATGEORY);
+  }
+  ```
+    ]]>
+  </code>
+</response>

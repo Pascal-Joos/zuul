@@ -1,0 +1,21 @@
+<response>
+  <reason><![CDATA[
+The `get` method in `com.netflix.zuul.context.SessionContext` is:
+
+```java
+@Override
+public Object get(Object key) {
+    return super.get(key);
+}
+```
+
+The return value depends entirely on `super.get(key)`. We have not been given the declaration or implementation of the superclass’ `get` method, so we cannot determine whether it may return `null` for some keys or situations.
+
+Because the method simply forwards the result of `super.get(key)` and performs no additional checks or transformations, any possibility of returning `null` would come directly from `super.get`. Without that declaration, we cannot conclude whether `null` is possible.
+
+Therefore, more information is required about the `get` method in the superclass.]]></reason>
+  <value>UNKNOWN</value>
+  <methods>
+    <method>get</method>
+  </methods>
+</response>

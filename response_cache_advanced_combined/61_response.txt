@@ -1,0 +1,27 @@
+<response>
+  <reason><![CDATA[I only have the method signature:
+
+```java
+SortedSet<ZuulFilter<?, ?>> getFiltersByType(FilterType filterType)
+```
+
+and its call site:
+
+```java
+final SortedSet<ZuulFilter<?, ?>> zuulFilters =
+    filterLoader.getFiltersByType(start.filterType());
+```
+
+No implementation (body) of `getFiltersByType` is provided, and no other methods it might delegate to are shown. Without the body, I cannot determine:
+
+- Whether it always initializes and returns a non-null `SortedSet` (possibly empty), or
+- Whether it may return `null` when there are no filters, or under some other condition.
+
+The fact that the caller immediately does `zuulFilters.size()` does not prove non-nullness; Java does not enforce that, and code may in practice throw a `NullPointerException` if `null` is returned.
+
+Because the nullability at this call site depends entirely on the internal logic of `getFiltersByType`, I need the full declaration (implementation) of that method to make a confident determination.]]></reason>
+  <success>false</success>
+  <methods>
+    <method>getFiltersByType</method>
+  </methods>
+</response>

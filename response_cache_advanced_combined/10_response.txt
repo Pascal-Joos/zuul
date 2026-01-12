@@ -1,0 +1,25 @@
+<response>
+  <reason><![CDATA[
+The method
+
+```java
+public static CurrentPassport fromSessionContext(SessionContext ctx) {
+    return ctx.get(CommonContextKeys.PASSPORT);
+}
+```
+
+has a single return path, which directly returns the result of `ctx.get(CommonContextKeys.PASSPORT)`.
+
+The return value therefore depends entirely on the behavior of `SessionContext.get`. Since the declaration and implementation of `SessionContext.get` are not provided, we cannot determine whether it guarantees a non-null value for the `CommonContextKeys.PASSPORT` key. It is entirely possible that:
+- `get(...)` returns `null` when the key is absent, or
+- `get(...)` returns `null` in some other circumstances.
+
+Without the full declaration of `SessionContext.get`, we cannot conclude that `fromSessionContext` always returns a non-null `CurrentPassport`, nor that it can definitely return null.
+
+We must inspect `SessionContext.get` to know whether it can return null.
+  ]]></reason>
+  <value>UNKNOWN</value>
+  <methods>
+    <method>get</method>
+  </methods>
+</response>

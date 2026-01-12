@@ -1,0 +1,22 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within this method, the only way `passport` is assigned is:
+
+    CurrentPassport passport = CurrentPassport.fromSessionContext(inMesg.getContext());
+
+Immediately after that, the code checks:
+
+    if (passport != null) {
+        ...
+        passport.addIfNotAlready(...)
+        ...
+    }
+
+The call `passport.addIfNotAlready(PassportState.FILTERS_INBOUND_BUF_END);` is inside this `if (passport != null)` block and `passport` is not reassigned within the block. There are no other code paths in this method where `passport` could be used without first passing this null check.
+
+Therefore, given only this method’s body and normal Java semantics, `passport` cannot be null at the point of the call. Any null value returned by `CurrentPassport.fromSessionContext(...)` would cause the `if (passport != null)` guard to fail and the call site would not be reached.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```
