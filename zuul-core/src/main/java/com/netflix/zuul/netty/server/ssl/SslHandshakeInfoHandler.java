@@ -215,10 +215,12 @@ public class SslHandshakeInfoHandler extends ChannelInboundHandlerAdapter {
     try {
       if (sslHandshakeCompletionEvent.isSuccess()) {
         String proto =
-            handshakeInfo.getProtocol().length() > 0 ? handshakeInfo.getProtocol() : "unknown";
+            Nullability.castToNonnull(handshakeInfo).getProtocol().length() > 0
+                ? Nullability.castToNonnull(handshakeInfo).getProtocol()
+                : "unknown";
         String ciphsuite =
-            handshakeInfo.getCipherSuite().length() > 0
-                ? handshakeInfo.getCipherSuite()
+            Nullability.castToNonnull(handshakeInfo).getCipherSuite().length() > 0
+                ? Nullability.castToNonnull(handshakeInfo).getCipherSuite()
                 : "unknown";
         spectatorRegistry
             .counter(
@@ -230,7 +232,7 @@ public class SslHandshakeInfoHandler extends ChannelInboundHandlerAdapter {
                 "ciphersuite",
                 String.valueOf(ciphsuite),
                 "clientauth",
-                String.valueOf(handshakeInfo.getClientAuthRequirement()))
+                String.valueOf(Nullability.castToNonnull(handshakeInfo).getClientAuthRequirement()))
             .increment();
       } else {
         spectatorRegistry
