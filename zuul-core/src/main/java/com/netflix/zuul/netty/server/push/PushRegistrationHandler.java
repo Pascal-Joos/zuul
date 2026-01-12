@@ -16,6 +16,7 @@ package com.netflix.zuul.netty.server.push;
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.config.CachedDynamicBooleanProperty;
 import com.netflix.config.CachedDynamicIntProperty;
+import edu.ucr.cs.riple.annotator.util.Nullability;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
@@ -41,7 +42,7 @@ public class PushRegistrationHandler extends ChannelInboundHandlerAdapter {
 
   /* state */
   protected final AtomicBoolean destroyed;
-  private ChannelHandlerContext ctx;
+  @Nullable private ChannelHandlerContext ctx;
   @Nullable private volatile PushConnection pushConnection;
   private final List<ScheduledFuture<?>> scheduledFutures;
 
@@ -104,9 +105,10 @@ public class PushRegistrationHandler extends ChannelInboundHandlerAdapter {
   }
 
   protected final void forceCloseConnectionFromServerSide() {
-    if (!destroyed.get()) {
+    if (!destroyed.get() && ctx != null) {
       logger.debug("server forcing close connection");
-      pushProtocol.sendErrorAndClose(ctx, 1000, "Server closed connection");
+      pushProtocol.sendErrorAndClose(
+          Nullability.castToNonnull(ctx), 1000, "Server closed connection");
     }
   }
 
@@ -120,12 +122,14 @@ public class PushRegistrationHandler extends ChannelInboundHandlerAdapter {
   }
 
   private void requestClientToCloseConnection() {
-    if (ctx.channel().isActive()) {
+    ChannelHandlerContext localCtx = this.ctx;
+    if (localCtx != null && localCtx.channel().isActive()) {
       // Application level protocol for asking client to close connection
-      ctx.writeAndFlush(pushProtocol.goAwayMessage());
+      localCtx.writeAndFlush(pushProtocol.goAwayMessage());
       // Force close connection if client doesn't close in reasonable time after we made request
       scheduledFutures.add(
-          ctx.executor()
+          localCtx
+              .executor()
               .schedule(
                   this::forceCloseConnectionFromServerSide,
                   CLIENT_CLOSE_GRACE_PERIOD.get(),
@@ -136,7 +140,7 @@ public class PushRegistrationHandler extends ChannelInboundHandlerAdapter {
   }
 
   protected void keepAlive() {
-    if (KEEP_ALIVE_ENABLED.get()) {
+    if (KEEP_ALIVE_ENABLED.get() && ctx != null) {
       ctx.writeAndFlush(new PingWebSocketFrame());
     }
   }
